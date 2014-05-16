@@ -1,0 +1,7 @@
+#! /bin/bash
+
+# Get the Settings
+. /proj/minecraft/bin/settings40.sh
+
+# Do the real work
+. /proj/minecraft/bin/genpoi.sh

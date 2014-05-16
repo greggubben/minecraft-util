@@ -1,0 +1,13 @@
+#! /bin/bash
+
+# Get the Settings
+. /proj/minecraft/bin/settings50.sh
+
+#
+# Make a copy of the map
+#
+/proj/minecraft/bin/minecraftserver50 sync
+
+
+# Do the real work
+. /proj/minecraft/bin/buildminecraftmap.sh

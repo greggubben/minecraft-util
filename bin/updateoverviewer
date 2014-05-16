@@ -1,0 +1,32 @@
+#!/bin/bash
+#
+# Install the Minecraft Overviewer
+#
+# The file can be found on GITHUB at:
+# https://github.com/overviewer/Minecraft-Overviewer
+
+
+#Settings
+USERNAME='minecraft'
+SCREEN_NAME='minecraft'
+MCPATH='/proj/minecraft'
+OVERVIEWER_PATH='/proj/minecraft/overviewer'
+OVERVIEWER_PATH_OLD='/proj/minecraft/overviewer_old'
+GIT_REPO='git://github.com/overviewer/Minecraft-Overviewer.git'
+
+ME=`whoami`
+as_user() {
+  if [ $ME == $USERNAME ] ; then
+    bash -c "$1"
+  else
+    su - $USERNAME -c "$1"
+  fi
+}
+
+
+rm -rf $OVERVIEWER_PATH_OLD
+mv $OVERVIEWER_PATH $OVERVIEWER_PATH_OLD
+as_user "git clone $GIT_REPO $OVERVIEWER_PATH"
+as_user "cd $OVERVIEWER_PATH; python setup.py build"
+
+exit 0
