@@ -1,0 +1,16 @@
+# Ignore file for minecraft directories/files that are not code.
+backup
+oldbin
+overviewer
+overviewer_old
+web
+*.converted
+*.tar
+*.old
+*.log
+*.jar
+*.png
+*.json
+logs
+world*
+DIM*
