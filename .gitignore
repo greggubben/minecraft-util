@@ -3,6 +3,8 @@ backup
 oldbin
 overviewer
 overviewer_old
+mclogalyzer
+mclogalyzer_old
 web
 *.converted
 *.tar

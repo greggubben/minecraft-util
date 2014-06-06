@@ -15,15 +15,40 @@
 # MCSERVEROFFLINE - the directory of the minecraft server world in offline mode
 # WORLD='world'
 # OFFLINE_WORLD='world-offline'
+# MCSERVERWEB     - the directory of the minecraft web directory
+# MCWEBASSETS     - the directory of the common images needed for Generating POI
 
-# Common Settings
+
+# Common Minecraft Server Settings
+# Name of the Service
 SERVICE=$MCSERVERJAR
-OPTIONS='nogui'
+# User to run the Service as
 USERNAME='minecraft'
+# Path to the Minecraft Server
 MCPATH=$MCSERVERROOT
+# Location to place backups
 BACKUPPATH=$MCSERVERBACKUP
+# Invocation Settings
+OPTIONS='nogui'
 CPU_COUNT=2
-INVOCATION="java -Xmx1024M -Xms512M -XX:+UseConcMarkSweepGC -XX:+CMSIncrementalPacing -XX:ParallelGCThreads=$CPU_COUNT -XX:+AggressiveOpts -jar $SERVICE"
+MAXHEAP=2048
+MINHEAP=1024
+HISTORY=1024
+INVOCATION="java -Xmx${MAXHEAP}M -Xms${MINHEAP}M -XX:+UseConcMarkSweepGC -XX:+CMSIncrementalPacing -XX:ParallelGCThreads=$CPU_COUNT -XX:+AggressiveOpts -jar $SERVICE $OPTIONS"
+
+# Common Map Builder Settings
+# Define the Map Generating program
+MAPBUILDER=$MCOVERVIEWERDIR/overviewer.py
+# Define the Master Settings for Generating the Map
+SETTINGS=$MCROOT/bin/buildmapsettings.py
+# Define the directory that contains the World
+OV_WORLD=$MCSERVEROFFLINE
+# Define the directory that contains the World
+OV_OUTPUTBASEDIR=$MCSERVERWEB
+# Define the directory that contains the Web Assets for building the Web Pages
+OV_WEBASSETS=$MCWEBASSETS
+# Export values need by the settings file
+export OV_WORLD OV_OUTPUTBASEDIR OV_WEBASSETS
 
 
 ME=`whoami`
@@ -36,15 +61,15 @@ as_user() {
 }
 
 mc_start() {
-  if ps ax | grep -v grep | grep -v -i SCREEN | grep $SERVICE > /dev/null
+  if pgrep -u $USERNAME -f $SERVICE > /dev/null
   then
     echo "$SERVICE is already running!"
   else
     echo "Starting $SERVICE..."
     cd $MCPATH
-    as_user "cd $MCPATH && screen -dmS $SCREEN_NAME $INVOCATION $OPTIONS"
+    as_user "cd $MCPATH && screen -dmS $SCREEN_NAME $INVOCATION"
     sleep 7
-    if ps ax | grep -v grep | grep -v -i SCREEN | grep $SERVICE > /dev/null
+    if pgrep -u $USERNAME -f $SERVICE > /dev/null
     then
       echo "$SERVICE is now running."
     else
@@ -62,7 +87,7 @@ mc_display() {
 }
 
 mc_saveoff() {
-  if ps ax | grep -v grep | grep -v -i SCREEN | grep $SERVICE > /dev/null
+  if pgrep -u $USERNAME -f $SERVICE > /dev/null
   then
     echo "$SERVICE is running... suspending saves"
     as_user "screen -p 0 -S $SCREEN_NAME -X eval 'stuff \"say SERVER BACKUP STARTING. Server going readonly...\"\015'"
@@ -76,7 +101,7 @@ mc_saveoff() {
 }
 
 mc_saveon() {
-  if ps ax | grep -v grep | grep -v -i SCREEN | grep $SERVICE > /dev/null
+  if pgrep -u $USERNAME -f $SERVICE > /dev/null
   then
     echo "$SERVICE is running... re-enabling saves"
     as_user "screen -p 0 -S $SCREEN_NAME -X eval 'stuff \"save-on\"\015'"
@@ -87,7 +112,7 @@ mc_saveon() {
 }
 
 mc_stop() {
-  if ps ax | grep -v grep | grep -v -i SCREEN | grep $SERVICE > /dev/null
+  if pgrep -u $USERNAME -f $SERVICE > /dev/null
   then
     echo "Stopping $SERVICE"
     as_user "screen -p 0 -S $SCREEN_NAME -X eval 'stuff \"say SERVER SHUTTING DOWN IN 10 SECONDS. Saving map...\"\015'"
@@ -98,7 +123,7 @@ mc_stop() {
   else
     echo "$SERVICE was not running."
   fi
-  if ps ax | grep -v grep | grep -v -i SCREEN | grep $SERVICE > /dev/null
+  if pgrep -u $USERNAME -f $SERVICE > /dev/null
   then
     echo "Error! $SERVICE could not be stopped."
   else
@@ -107,32 +132,38 @@ mc_stop() {
 }
 
 mc_update() {
-  if ps ax | grep -v grep | grep -v -i SCREEN | grep $SERVICE > /dev/null
-  then
-    echo "$SERVICE is running! Will not start update."
-  else
-      if [ "$1" ]
-      then
-        MC_SERVER_FILE="$1"
-        #MC_SERVER_URL=http://www.minecraft.net/download/minecraft_server.jar?v=`date | sed "s/[^a-zA-Z0-9]/_/g"`
-        #as_user "cd $MCPATH && wget -q -O $MCPATH/minecraft_server.jar.update $MC_SERVER_URL"
-        if [ -f $MC_SERVER_FILE ]
-        then
-          if `diff $MCPATH/$SERVICE $MC_SERVER_FILE >/dev/null`
-          then 
-            echo "You are already running the latest version of $SERVICE."
-          else
-            as_user "mv $MCPATH/$SERVICE $MCPATH/$SERVICE.old"
-            as_user "cp $MC_SERVER_FILE $MCPATH/$SERVICE"
-            echo "Minecraft successfully updated."
-          fi
+   if pgrep -u $USERNAME -f $SERVICE > /dev/null
+   then
+     echo "$SERVICE is running! Will not start update."
+   else
+     as_user "cd $MCPATH && wget -q -O $MCPATH/versions http://s3.amazonaws.com/Minecraft.Download/versions/versions.json"
+        snap=`awk -v linenum=3 'NR == linenum {print; exit}' "$MCPATH/versions"`
+        snapVersion=`echo $snap | awk -F'\"' '{print $4}'`
+        re=`awk -v linenum=4 'NR == linenum {print; exit}' "$MCPATH/versions"`
+        reVersion=`echo $re | awk -F'\"' '{print $4}'`
+        as_user "rm $MCPATH/versions"
+        if [ "$1" == "snapshot" ]; then
+          echo "Getting latest snapshot $snapVersion"
+          MC_SERVER_URL=http://s3.amazonaws.com/Minecraft.Download/versions/$snapVersion/minecraft_server.$snapVersion.jar
         else
-          echo "Minecraft server file $MC_SERVER_FILE does not exist."
+          echo "Getting latest release $reVersion"
+          MC_SERVER_URL=http://s3.amazonaws.com/Minecraft.Download/versions/$reVersion/minecraft_server.$reVersion.jar
         fi
+     as_user "cd $MCPATH && wget -q -O $MCPATH/minecraft_server.jar.update $MC_SERVER_URL"
+     if [ -f $MCPATH/minecraft_server.jar.update ]
+     then
+       if `diff $MCPATH/$SERVICE $MCPATH/minecraft_server.jar.update >/dev/null`
+       then
+         as_user "rm $MCPATH/minecraft_server.jar.update"
+         echo "You are already running the latest version of $SERVICE."
+       else
+         as_user "mv $MCPATH/minecraft_server.jar.update $MCPATH/$SERVICE"
+         echo "Minecraft successfully updated."
+       fi
      else
-       echo "Missing Minecraft server file argument."
+       echo "Minecraft update could not be downloaded."
      fi
-  fi
+   fi
 }
 
 mc_sync_offline() {
@@ -156,50 +187,61 @@ mc_sync_offline() {
 }
 
 mc_backup() {
-   echo "Backing up minecraft world..."
-   if [ -d $BACKUPPATH/$WORLD_`date "+%Y.%m.%d"` ]
-   then
-     for i in 1 2 3 4 5 6
-     do
-       if [ -d $BACKUPPATH/$WORLD_`date "+%Y.%m.%d"`-$i ]
-       then
-         continue
-       else
-         as_user "cd $MCPATH && cp -r --preserve=all $WORLD $BACKUPPATH/$WORLD_`date "+%Y.%m.%d"`-$i"
-         break
-       fi
-     done
-   else
-     as_user "cd $MCPATH && cp -r --preserve=all $WORLD $BACKUPPATH/$WORLD_`date "+%Y.%m.%d"`"
-     echo "Backed up world"
-   fi
-   echo "Backing up $SERVICE"
-   if [ -f "$BACKUPPATH/minecraft_server_`date "+%Y.%m.%d"`.jar" ]
-   then
-     for i in 1 2 3 4 5 6
-     do
-       if [ -f "$BACKUPPATH/minecraft_server_`date "+%Y.%m.%d"`-$i.jar" ]
-       then
-         continue
-       else
-         as_user "cd $MCPATH && cp $SERVICE \"$BACKUPPATH/minecraft_server_`date "+%Y.%m.%d"`-$i.jar\""
-         break
-       fi
-     done
-   else
-     as_user "cd $MCPATH && cp $SERVICE \"$BACKUPPATH/minecraft_server_`date "+%Y.%m.%d"`.jar\""
-   fi
-   echo "Backup complete"
+    mc_saveoff
+
+    NOW=`date "+%Y-%m-%d_%Hh%M"`
+    BACKUP_FILE="$BACKUPPATH/${WORLD}_${NOW}.tar"
+    echo "Backing up minecraft world..."
+    #as_user "cd $MCPATH && cp -r $WORLD $BACKUPPATH/${WORLD}_`date "+%Y.%m.%d_%H.%M"`"
+    as_user "tar -C \"$MCPATH\" -cf \"$BACKUP_FILE\" $WORLD"
+
+    echo "Backing up $SERVICE"
+    as_user "tar -C \"$MCPATH\" -rf \"$BACKUP_FILE\" $SERVICE"
+    #as_user "cp \"$MCPATH/$SERVICE\" \"$BACKUPPATH/minecraft_server_${NOW}.jar\""
+
+    mc_saveon
+
+    echo "Compressing backup..."
+    as_user "gzip -f \"$BACKUP_FILE\""
+    echo "Backup complete"
+}
+
+mc_buildmap() {
+    #
+    # Build minecraft map
+    #
+    if [ ! -d $OV_OUTPUTBASEDIR ]
+    then
+        mkdir $OV_OUTPUTBASEDIR
+    fi
+    as_user $MAPBUILDER --config=$SETTINGS $*
+}
+
+mc_genpoi() {
+    #
+    # Generate Points of Interest (POI) for minecraft map
+    #
+    if [ ! -d $OV_OUTPUTBASEDIR ]
+    then
+        mkdir $OV_OUTPUTBASEDIR
+    fi
+    as_user $MAPBUILDER --config=$SETTINGS $* --genpoi
 }
 
 mc_command() {
   if [ "$1" ]
   then
     command="$1";
-    if ps ax | grep -v grep | grep -v -i SCREEN | grep $SERVICE > /dev/null
+    if pgrep -u $USERNAME -f $SERVICE > /dev/null
     then
+      pre_log_len=`wc -l "$MCPATH/logs/latest.log" | awk '{print $1}'`
       echo "$SERVICE is running... executing command"
       as_user "screen -p 0 -S $SCREEN_NAME -X eval 'stuff \"$command\"\015'"
+      sleep .1 # assumes that the command will run and print to the log file in less than .1 seconds
+      # print output
+      tail -n $[`wc -l "$MCPATH/logs/latest.log" | awk '{print $1}'`-$pre_log_len] "$MCPATH/logs/latest.log"
+    else
+      echo "$SERVICE was not running."
     fi
     else
       echo "Must specify server command"
@@ -213,6 +255,9 @@ case "$1" in
     ;;
   display)
     mc_display
+    ;;
+  hide)
+    mc_hide
     ;;
   stop)
     mc_stop
@@ -238,12 +283,22 @@ case "$1" in
     mc_saveon
     ;;
   backup)
-    mc_saveoff
     mc_backup
+    ;;
+  buildmap)
+    mc_saveoff
+    mc_sync_offline
     mc_saveon
+    shift
+    mc_buildmap "$*"
+    mc_genpoi "$*"
+    ;;
+  genpoi)
+    shift
+    mc_genpoi "$*"
     ;;
   status)
-    if ps ax | grep -v grep | grep -v -i SCREEN | grep $SERVICE > /dev/null
+    if pgrep -u $USERNAME -f $SERVICE > /dev/null
     then
       echo "$SERVICE is running."
     else
@@ -255,7 +310,12 @@ case "$1" in
     ;;
 
   *)
-  echo "Usage: /etc/init.d/minecraft {start|stop|update|backup|status|restart|display|sync|command \"server command\"}"
+  echo "Usage: $0 {start|stop|backup|status|restart|display|hide}"
+  echo "       $0 command \"server command\""
+  echo "       $0 sync [purge]"
+  echo "       $0 update [snapshot]"
+  echo "       $0 buildmap [options]"
+  echo "       $0 genpoi [options]"
   exit 1
   ;;
 esac
