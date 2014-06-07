@@ -1,0 +1,49 @@
+#!/bin/bash
+#
+# Install the Textures from Minecraft the Client
+#
+
+# Set up the common Settings
+. /proj/minecraft/bin/settings.sh
+
+#
+# The following values must be set prior to running this script:
+#
+# MCTEXTUREPATH - the directory where the texture assets is stored
+# MCUSERNAME    - the username that should own the files
+
+# User to run the Service as
+USERNAME=$MCUSERNAME
+
+
+ME=`whoami`
+as_user() {
+  if [ $ME == $USERNAME ] ; then
+    bash -c "$1"
+  else
+    su - $USERNAME -p -c "$1"
+  fi
+}
+
+as_user "cd $MCTEXTUREPATH && wget -q -O $MCTEXTUREPATH/versions http://s3.amazonaws.com/Minecraft.Download/versions/versions.json"
+re=`awk -v linenum=4 'NR == linenum {print; exit}' "$MCTEXTUREPATH/versions"`
+reVersion=`echo $re | awk -F'\"' '{print $4}'`
+as_user "rm $MCTEXTUREPATH/versions"
+echo "Getting latest release $reVersion"
+MC_SERVER_URL=http://s3.amazonaws.com/Minecraft.Download/versions/$reVersion/$reVersion.jar
+as_user "cd $MCTEXTUREPATH && wget -q -O $MCTEXTUREPATH/minecraft.jar.update $MC_SERVER_URL"
+if [ -f $MCTEXTUREPATH/minecraft.jar.update ]
+then
+  if `diff $MCTEXTUREPATH/minecraft.jar $MCTEXTUREPATH/minecraft.jar.update >/dev/null`
+  then
+    as_user "rm $MCTEXTUREPATH/minecraft.jar.update"
+    echo "You are already have the latest version."
+  else
+    as_user "mv $MCTEXTUREPATH/minecraft.jar.update $MCTEXTUREPATH/minecraft.jar"
+    as_user "cd $MCTEXTUREPATH && unzip minecraft.jar assets/*"
+    echo "Minecraft Client Testure Pack successfully updated."
+  fi
+else
+  echo "Minecraft Client update could not be downloaded."
+fi
+

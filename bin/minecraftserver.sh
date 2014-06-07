@@ -11,6 +11,7 @@
 # MCSERVERROOT    - the root directory of the minecraft server
 # MCSERVERBACKUP  - the directory to place the backups of the minecraft server
 # SCREEN_NAME     - the name of the minecraft server
+# MCUSERNAME      - the owner of the minecraft server process and files
 # MCSERVERWORLD   - the directory of the minecraft server world
 # MCSERVEROFFLINE - the directory of the minecraft server world in offline mode
 # WORLD='world'
@@ -23,7 +24,7 @@
 # Name of the Service
 SERVICE=$MCSERVERJAR
 # User to run the Service as
-USERNAME='minecraft'
+USERNAME=$MCUSERNAME
 # Path to the Minecraft Server
 MCPATH=$MCSERVERROOT
 # Location to place backups
@@ -48,7 +49,7 @@ OV_OUTPUTBASEDIR=$MCSERVERWEB
 # Define the directory that contains the Web Assets for building the Web Pages
 OV_WEBASSETS=$MCWEBASSETS
 # Export values need by the settings file
-export OV_WORLD OV_OUTPUTBASEDIR OV_WEBASSETS
+export OV_WORLD OV_OUTPUTBASEDIR OV_WEBASSETS MCTEXTUREPATH
 
 
 ME=`whoami`
@@ -56,7 +57,7 @@ as_user() {
   if [ $ME == $USERNAME ] ; then
     bash -c "$1"
   else
-    su - $USERNAME -c "$1"
+    su - $USERNAME -p -c "$1"
   fi
 }
 
@@ -214,7 +215,7 @@ mc_buildmap() {
     then
         mkdir $OV_OUTPUTBASEDIR
     fi
-    as_user $MAPBUILDER --config=$SETTINGS $*
+    as_user "$MAPBUILDER --config=$SETTINGS $*"
 }
 
 mc_genpoi() {
@@ -225,7 +226,7 @@ mc_genpoi() {
     then
         mkdir $OV_OUTPUTBASEDIR
     fi
-    as_user $MAPBUILDER --config=$SETTINGS $* --genpoi
+    as_user "$MAPBUILDER --config=$SETTINGS $* --genpoi"
 }
 
 mc_command() {

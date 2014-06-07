@@ -6,6 +6,7 @@ overviewer_old
 mclogalyzer
 mclogalyzer_old
 web
+client
 *.converted
 *.tar
 *.old

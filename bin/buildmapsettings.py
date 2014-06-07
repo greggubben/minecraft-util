@@ -189,7 +189,7 @@ renders["day"] = {
     'rendermode': smooth_lighting,
     'dimension': "overworld",
     'northdirection': "upper-left",
-    'texturepath': "/home/minecraft/.minecraft",
+    'texturepath': os.environ['MCTEXTUREPATH'],
     'markers': [signs, chests, players, playerSpawns, pets],
 }
 
@@ -199,7 +199,7 @@ renders["night"] = {
     'rendermode': smooth_night,
     'dimension': "overworld",
     'northdirection': "upper-left",
-    'texturepath': "/home/minecraft/.minecraft",
+    'texturepath': os.environ['MCTEXTUREPATH'],
 }
 
 renders["cave"] = {
@@ -208,7 +208,7 @@ renders["cave"] = {
     'rendermode': cave,
     'dimension': "overworld",
     'northdirection': "upper-left",
-    'texturepath': "/home/minecraft/.minecraft",
+    'texturepath': os.environ['MCTEXTUREPATH'],
     'markers': [signs, chests, players, pets, spawners],
 }
 
@@ -219,7 +219,7 @@ renders["daysw"] = {
     'rendermode': smooth_lighting,
     'dimension': "overworld",
     'northdirection': "lower-right",
-    'texturepath': "/home/minecraft/.minecraft",
+    'texturepath': os.environ['MCTEXTUREPATH'],
     'markers': [signs, chests, players, playerSpawns, pets],
 }
 
@@ -229,7 +229,7 @@ renders["nightsw"] = {
     'rendermode': smooth_night,
     'dimension': "overworld",
     'northdirection': "lower-right",
-    'texturepath': "/home/minecraft/.minecraft",
+    'texturepath': os.environ['MCTEXTUREPATH'],
 }
 
 renders["cavesw"] = {
@@ -238,7 +238,7 @@ renders["cavesw"] = {
     'rendermode': cave,
     'dimension': "overworld",
     'northdirection': "lower-right",
-    'texturepath': "/home/minecraft/.minecraft",
+    'texturepath': os.environ['MCTEXTUREPATH'],
     'markers': [signs, chests, players, pets, spawners],
 }
 
@@ -248,7 +248,7 @@ renders["nether"] = {
     'rendermode': nether_smooth_lighting,
     'dimension': "nether",
     'northdirection': "upper-left",
-    'texturepath': "/home/minecraft/.minecraft",
+    'texturepath': os.environ['MCTEXTUREPATH'],
     'markers': [signs, chests, players, pets, spawners],
 } 
 
@@ -258,7 +258,7 @@ renders["nethersw"] = {
     'rendermode': nether_smooth_lighting,
     'dimension': "nether",
     'northdirection': "lower-right",
-    'texturepath': "/home/minecraft/.minecraft",
+    'texturepath': os.environ['MCTEXTUREPATH'],
     'markers': [signs, chests, players, pets, spawners],
 } 
 
