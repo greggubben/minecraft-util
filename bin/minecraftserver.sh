@@ -51,6 +51,8 @@ OV_WEBASSETS=$MCWEBASSETS
 # Export values need by the settings file
 export OV_WORLD OV_OUTPUTBASEDIR OV_WEBASSETS MCTEXTUREPATH
 
+# Common Log Analyzer Settings
+LOGANALYZER="$MCLOGALYZERDIR/mclogalyzer/mclogalyzer.py"
 
 ME=`whoami`
 as_user() {
@@ -229,6 +231,17 @@ mc_genpoi() {
     as_user "$MAPBUILDER --config=$SETTINGS $* --genpoi"
 }
 
+mc_loganalyzer() {
+    #
+    # Generate Points of Interest (POI) for minecraft map
+    #
+    if [ ! -d $OV_OUTPUTBASEDIR ]
+    then
+        mkdir $OV_OUTPUTBASEDIR
+    fi
+    as_user "$LOGANALYZER $MCSERVERLOGS $MCSERVERWEB/stats.html"
+}
+
 mc_command() {
   if [ "$1" ]
   then
@@ -293,10 +306,14 @@ case "$1" in
     shift
     mc_buildmap "$*"
     mc_genpoi "$*"
+    mc_loganalyzer
     ;;
   genpoi)
     shift
     mc_genpoi "$*"
+    ;;
+  loganalyzer)
+    mc_loganalyzer
     ;;
   status)
     if pgrep -u $USERNAME -f $SERVICE > /dev/null
@@ -311,7 +328,7 @@ case "$1" in
     ;;
 
   *)
-  echo "Usage: $0 {start|stop|backup|status|restart|display|hide}"
+  echo "Usage: $0 {start|stop|backup|status|restart|display|hide|loganalyzer}"
   echo "       $0 command \"server command\""
   echo "       $0 sync [purge]"
   echo "       $0 update [snapshot]"

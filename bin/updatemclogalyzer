@@ -1,0 +1,29 @@
+#!/bin/bash
+#
+# Install the Minecraft Logalyzer
+#
+# The file can be found on GITHUB at:
+# git://github.com/m0r13/mclogalyzer.git
+
+
+#Settings
+. /proj/minecraft/bin/settings.sh
+USERNAME=$MCUSERNAME
+MCLOGALYZERDIR_OLD=${MCLOGALYZERDIR}_old
+GIT_REPO='git://github.com/m0r13/mclogalyzer.git'
+
+ME=`whoami`
+as_user() {
+  if [ $ME == $USERNAME ] ; then
+    bash -c "$1"
+  else
+    su - $USERNAME -c "$1"
+  fi
+}
+
+
+rm -rf $MCLOGALYZERDIR_OLD
+mv $MCLOGALYZERDIR $MCLOGALYZERDIR_OLD
+as_user "git clone $GIT_REPO $MCLOGALYZERDIR"
+
+exit 0

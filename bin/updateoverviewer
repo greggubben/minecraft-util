@@ -7,11 +7,9 @@
 
 
 #Settings
-USERNAME='minecraft'
-SCREEN_NAME='minecraft'
-MCPATH='/proj/minecraft'
-OVERVIEWER_PATH='/proj/minecraft/overviewer'
-OVERVIEWER_PATH_OLD='/proj/minecraft/overviewer_old'
+. /proj/minecraft/bin/settings.sh
+USERNAME=$MCUSERNAME
+MCOVERVIEWERDIR_OLD=${MCOVERVIEWERDIR}_old
 GIT_REPO='git://github.com/overviewer/Minecraft-Overviewer.git'
 
 ME=`whoami`
@@ -24,9 +22,9 @@ as_user() {
 }
 
 
-rm -rf $OVERVIEWER_PATH_OLD
-mv $OVERVIEWER_PATH $OVERVIEWER_PATH_OLD
-as_user "git clone $GIT_REPO $OVERVIEWER_PATH"
-as_user "cd $OVERVIEWER_PATH; python setup.py build"
+rm -rf $MCOVERVIEWERDIR_OLD
+mv $MCOVERVIEWERDIR $MCOVERVIEWERDIR_OLD
+as_user "git clone $GIT_REPO $MCOVERVIEWERDIR"
+as_user "cd $MCOVERVIEWERDIR; python setup.py build"
 
 exit 0
