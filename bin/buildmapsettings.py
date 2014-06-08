@@ -262,3 +262,42 @@ renders["nethersw"] = {
     'markers': [signs, chests, players, pets, spawners],
 } 
 
+renders['biomeover'] = {
+    'world': 'mainworld',
+    'title': "Biome Coloring Overlay",
+    'rendermode': [ClearBase(), BiomeOverlay()],
+    'dimension': "overworld",
+    'northdirection': "upper-left",
+    'texturepath': os.environ['MCTEXTUREPATH'],
+    'overlay': ['day']
+}
+
+renders['mineralover'] = {
+    'world': 'mainworld',
+    'title': "Mineral Coloring Overlay",
+    'rendermode': [ClearBase(), MineralOverlay()],
+    'dimension': "overworld",
+    'northdirection': "upper-left",
+    'texturepath': os.environ['MCTEXTUREPATH'],
+    'overlay': ['day']
+}
+
+renders['spawnover'] = {
+    'world': 'mainworld',
+    'title': "Spawn Coloring Overlay",
+    'rendermode': [ClearBase(), SpawnOverlay()],
+    'dimension': "overworld",
+    'northdirection': "upper-left",
+    'texturepath': os.environ['MCTEXTUREPATH'],
+    'overlay': ['day']
+}
+
+renders['slimeover'] = {
+    'world': 'mainworld',
+    'title': "Slime Coloring Overlay",
+    'rendermode': [ClearBase(), SlimeOverlay()],
+    'dimension': "overworld",
+    'northdirection': "upper-left",
+    'texturepath': os.environ['MCTEXTUREPATH'],
+    'overlay': ['day']
+}
