@@ -152,10 +152,12 @@ def petFilter(poi):
         if 'OwnerUUID' in poi and poi['OwnerUUID'] != "":
             try:
                 profile = json.loads(urllib2.urlopen(UUID_LOOKUP_URL + poi['OwnerUUID'].replace('-','')).read())
-                if 'name' in profile:
-                    playername = profile['name']
+                #if 'name' in profile:
+                    #playername = profile['name']
             except (ValueError, urllib2.URLError):
-                logging.warning("Unable to get player name for UUID %s", playername)
+                print "Unable to get player name for UUID '{0}'".format(poi['OwnerUUID'])
+            except:
+                print "Unexpected error:", sys.exc_info()[0]
         if playername != "":
             pet_text = "{}'s {}".format(playername, pet_text)
             image_html = "<img src='http://overviewer.org/avatar/{}' />".format(playername)
