@@ -74,9 +74,9 @@ def playerIcons(poi):
         person_text = "Last known location for {}".format(poi['EntityId'])
         person_level_text = "{} ({})".format(poi['EntityId'], poi['XpLevel'])
         armor_points = 0
-        for i in poi['Inventory']:
-            if i['Slot'] in (100, 101, 102, 103):
-                armor_points += armor[i['id']]
+        #for i in poi['Inventory']:
+        #    if i['Slot'] in (100, 101, 102, 103):
+        #        armor_points += armor[i['id']]
         armor_text = "Armor = {}/20\n{}".format(armor_points, level2Icons(armor_points,"armor.png","half_armor.png"))
         health_text = "Health = {}/20\n{}".format(poi['Health'], level2Icons(poi['Health'],"heart.png","half_heart.png"))
         hunger_text = "Hunger = {}/20\n{}".format(poi['foodLevel'], level2Icons(poi['foodLevel'],"hunger.png","half_hunger.png"))
@@ -178,6 +178,14 @@ def spawnerFilter(poi):
 
 spawners = {'name': "Spawners", 'filterFunction': spawnerFilter, 'icon': "spawner.png"}
 
+def netherportalFilter(poi):
+    if poi["id"] == "Nether Portal":
+        info = "Nether Portal\n"
+        info += "X:{} Y:{} Z:{}".format(poi['x'], poi['y'], poi['z'])
+        return info
+
+netherportals = {'name': "Nether Portals", 'filterFunction': netherportalFilter, 'icon': "portal.png"}
+
 ################################################################################
 worlds["mainworld"] = os.environ['OV_WORLD']
 
@@ -192,7 +200,7 @@ renders["day"] = {
     'dimension': "overworld",
     'northdirection': "upper-left",
     'texturepath': os.environ['MCTEXTUREPATH'],
-    'markers': [signs, chests, players, playerSpawns, pets],
+    'markers': [signs, chests, players, playerSpawns, pets, netherportals],
 }
 
 renders["night"] = {
@@ -211,7 +219,7 @@ renders["cave"] = {
     'dimension': "overworld",
     'northdirection': "upper-left",
     'texturepath': os.environ['MCTEXTUREPATH'],
-    'markers': [signs, chests, players, pets, spawners],
+    'markers': [signs, chests, players, pets, spawners, netherportals],
 }
 
 
@@ -222,7 +230,7 @@ renders["daysw"] = {
     'dimension': "overworld",
     'northdirection': "lower-right",
     'texturepath': os.environ['MCTEXTUREPATH'],
-    'markers': [signs, chests, players, playerSpawns, pets],
+    'markers': [signs, chests, players, playerSpawns, pets, netherportals],
 }
 
 renders["nightsw"] = {
@@ -241,7 +249,7 @@ renders["cavesw"] = {
     'dimension': "overworld",
     'northdirection': "lower-right",
     'texturepath': os.environ['MCTEXTUREPATH'],
-    'markers': [signs, chests, players, pets, spawners],
+    'markers': [signs, chests, players, pets, spawners, netherportals],
 }
 
 renders["nether"] = {
@@ -251,7 +259,7 @@ renders["nether"] = {
     'dimension': "nether",
     'northdirection': "upper-left",
     'texturepath': os.environ['MCTEXTUREPATH'],
-    'markers': [signs, chests, players, pets, spawners],
+    'markers': [signs, chests, players, pets, spawners, netherportals],
 } 
 
 renders["nethersw"] = {
@@ -261,7 +269,7 @@ renders["nethersw"] = {
     'dimension': "nether",
     'northdirection': "lower-right",
     'texturepath': os.environ['MCTEXTUREPATH'],
-    'markers': [signs, chests, players, pets, spawners],
+    'markers': [signs, chests, players, pets, spawners, netherportals],
 } 
 
 renders['biomeover'] = {

@@ -1,17 +1,15 @@
 #!/bin/bash
-# /etc/init.d/minecraft
-# version 0.3.4 2011-06-12 (YYYY-MM-DD)
+# /etc/init.d/minecraftserver40
+# version 1.0.0 2015-07-04 (YYYY-MM-DD)
 
 ### BEGIN INIT INFO
-# Provides:   minecraft
-# Required-Start: $local_fs $remote_fs
-# Required-Stop:  $local_fs $remote_fs
-# Should-Start:   $network
-# Should-Stop:    $network
+# Provides:   minecraftserver40
+# Required-Start: $local_fs $remote_fs $network $syslog $named
+# Required-Stop:  $local_fs $remote_fs $network $syslog $named
 # Default-Start:  2 3 4 5
 # Default-Stop:   0 1 6
-# Short-Description:    Minecraft server
-# Description:    Starts the minecraft server
+# Short-Description:    Minecraft server 40
+# Description:    Starts the minecraft server 40
 ### END INIT INFO
 
 # Set up the common Settings

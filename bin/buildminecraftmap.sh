@@ -11,6 +11,11 @@
 # MCSERVERWEB     - the directory of the minecraft web directory
 # MCWEBASSETS     - the directory of the common images needed for Generating POI
 
+echo "Building Minecraft $SCREEN_NAME Map"
+echo "Build started at"
+date
+echo
+
 # Define the Map Generating program
 MAPBUILDER=$MCOVERVIEWERDIR/overviewer.py
 
@@ -28,6 +33,13 @@ OV_WEBASSETS=$MCWEBASSETS
 
 export OV_WORLD OV_OUTPUTBASEDIR OV_WEBASSETS
 
+echo "MAPBUILDER=$MAPBUILDER"
+echo "SETTINGS=$SETTINGS"
+echo "OV_WORLD=$OV_WORLD"
+echo "OV_OUTPUTBASEDIR=$OV_OUTPUTBASEDIR"
+echo "OV_WEBASSETS=$OV_WEBASSETS"
+echo
+
 #
 # Build minecraft map
 #
@@ -35,6 +47,17 @@ if [ ! -d $OV_OUTPUTBASEDIR ]
 then
     mkdir $OV_OUTPUTBASEDIR
 fi
-$MAPBUILDER --config=$SETTINGS $*
+
+echo
+echo "Building the Map"
+echo
+#$MAPBUILDER --config=$SETTINGS $*
+
+echo
+echo "Generating the Points of Interest"
+echo
 $MAPBUILDER --config=$SETTINGS $* --genpoi
 
+echo
+echo "Completed at"
+date

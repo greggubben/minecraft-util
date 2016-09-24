@@ -134,16 +134,35 @@ mc_stop() {
   fi
 }
 
+mc_check_update() {
+   as_user "cd $MCPATH && wget -q -O $MCPATH/versions https://launchermeta.mojang.com/mc/game/version_manifest.json"
+   snap=`cat $MCPATH/versions | sed 's/\n//g' | sed 's/}/\n/g' | grep latest | sed 's/{/\n/g' | sed 's/,/\n/g' | grep snapshot`
+   snapVersion=`echo $snap | awk -F'\"' '{print $4}'`
+   re=`cat $MCPATH/versions | sed 's/\n//g' | sed 's/}/\n/g' | grep latest | sed 's/{/\n/g' | sed 's/,/\n/g' | grep release`
+   reVersion=`echo $re | awk -F'\"' '{print $4}'`
+   echo "Latest Versions"
+   echo "Release:  $reVersion"
+   echo "Snapshot: $snapVersion"
+   as_user "rm $MCPATH/versions"
+}
+
+
 mc_update() {
    if pgrep -u $USERNAME -f $SERVICE > /dev/null
    then
      echo "$SERVICE is running! Will not start update."
    else
-     as_user "cd $MCPATH && wget -q -O $MCPATH/versions http://s3.amazonaws.com/Minecraft.Download/versions/versions.json"
-        snap=`awk -v linenum=3 'NR == linenum {print; exit}' "$MCPATH/versions"`
+     #as_user "cd $MCPATH && wget -q -O $MCPATH/versions http://s3.amazonaws.com/Minecraft.Download/versions/versions.json"
+     as_user "cd $MCPATH && wget -q -O $MCPATH/versions https://launchermeta.mojang.com/mc/game/version_manifest.json"
+        #snap=`awk -v linenum=3 'NR == linenum {print; exit}' "$MCPATH/versions"`
+        snap=`cat $MCPATH/versions | sed 's/\n//g' | sed 's/}/\n/g' | grep latest | sed 's/{/\n/g' | sed 's/,/\n/g' | grep snapshot`
         snapVersion=`echo $snap | awk -F'\"' '{print $4}'`
-        re=`awk -v linenum=4 'NR == linenum {print; exit}' "$MCPATH/versions"`
+        #re=`awk -v linenum=4 'NR == linenum {print; exit}' "$MCPATH/versions"`
+        re=`cat $MCPATH/versions | sed 's/\n//g' | sed 's/}/\n/g' | grep latest | sed 's/{/\n/g' | sed 's/,/\n/g' | grep release`
         reVersion=`echo $re | awk -F'\"' '{print $4}'`
+        echo "Latest Versions"
+        echo "Release: $reVersion"
+        echo "Snapshot: $snapVersion"
         as_user "rm $MCPATH/versions"
         if [ "$1" == "snapshot" ]; then
           echo "Getting latest snapshot $snapVersion"
@@ -281,10 +300,14 @@ case "$1" in
     mc_start
     ;;
   update)
-    mc_stop
-    mc_backup
-    mc_update "$2"
-    mc_start
+    if [[ "check" == $2 ]]; then
+      mc_check_update
+    else
+      mc_stop
+      mc_backup
+      mc_update "$2"
+      mc_start
+    fi
     ;;
   sync)
     if [[ "purge" == $2 ]]; then
@@ -300,13 +323,26 @@ case "$1" in
     mc_backup
     ;;
   buildmap)
+    echo "Started on: `date`"
+    echo
     mc_saveoff
     mc_sync_offline
     mc_saveon
     shift
+    echo
+    echo "Building the Map"
+    echo
     mc_buildmap "$*"
+    echo
+    echo "Generating the Points of Interest"
+    echo
     mc_genpoi "$*"
+    echo
+    echo "Analyzing the Logs"
+    echo
     mc_loganalyzer
+    echo
+    echo "Completed on: `date`"
     ;;
   genpoi)
     shift
@@ -331,7 +367,7 @@ case "$1" in
   echo "Usage: $0 {start|stop|backup|status|restart|display|hide|loganalyzer}"
   echo "       $0 command \"server command\""
   echo "       $0 sync [purge]"
-  echo "       $0 update [snapshot]"
+  echo "       $0 update [snapshot|check]"
   echo "       $0 buildmap [options]"
   echo "       $0 genpoi [options]"
   exit 1
