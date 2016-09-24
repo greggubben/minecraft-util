@@ -1,0 +1,6 @@
+#
+# Install the minecraft crontab file
+#
+. /proj/minecraft/bin/settings.sh
+
+sudo -u $MCUSERNAME crontab -u $MCUSERNAME $MCCRONTABFILE
