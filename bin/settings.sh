@@ -14,6 +14,11 @@ MCUSERNAME='minecraft'
 
 export MCROOT MCROOTSERVERS MCROOTBACKUP MCROOTWEB MCUSERNAME
 
+# Specific Files
+MCCRONTABFILE=$MCROOT/crontab/crontab
+
+export MCCRONTABFILE
+
 # Overviewer settings
 MCOVERVIEWERDIR=$MCROOT/overviewer
 MCWEBASSETS=$MCROOT/web_assets

@@ -25,7 +25,7 @@ as_user() {
   fi
 }
 
-as_user "cd $MCTEXTUREPATH && wget -q -O $MCTEXTUREPATH/versions http://s3.amazonaws.com/Minecraft.Download/versions/versions.json"
+as_user "cd $MCTEXTUREPATH && wget -q -O $MCTEXTUREPATH/versions https://launchermeta.mojang.com/mc/game/version_manifest.json"
 re=`cat $MCTEXTUREPATH/versions | sed 's/\n//g' | sed 's/}/\n/g' | grep latest | sed 's/{/\n/g' | sed 's/,/\n/g' | grep release`
 reVersion=`echo $re | awk -F'\"' '{print $4}'`
 echo "Latest Versions"
@@ -33,6 +33,8 @@ echo "Release: $reVersion"
 #as_user "rm $MCTEXTUREPATH/versions"
 echo "Getting latest release $reVersion"
 MC_SERVER_URL=http://s3.amazonaws.com/Minecraft.Download/versions/$reVersion/$reVersion.jar
+exit
+
 as_user "cd $MCTEXTUREPATH && wget -q -O $MCTEXTUREPATH/minecraft.jar.update $MC_SERVER_URL"
 if [ -f $MCTEXTUREPATH/minecraft.jar.update ]
 then
