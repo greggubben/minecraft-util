@@ -247,6 +247,7 @@ mc_genpoi() {
     then
         mkdir $OV_OUTPUTBASEDIR
     fi
+    as_user "rm -rf $MCOVERVIEWERTMP/*"
     as_user "$MAPBUILDER --config=$SETTINGS $* --genpoi"
 }
 

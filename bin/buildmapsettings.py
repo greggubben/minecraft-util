@@ -20,10 +20,34 @@ import os
 ################################################################################
 # Functions
 
+# Debug the POI Markers
+def debugPoiMarkersFilter(poi):
+    import os
+    import json
+    tmp_dir = os.environ['MCOVERVIEWERTMP']
+    debug_dir = tmp_dir + "/debug"
+    if not os.path.exists(debug_dir):
+        os.makedirs(debug_dir)
+
+    poi_id = poi['id']
+    debug_file = debug_dir + "/" + poi_id
+    with open(debug_file, 'a') as poi_debug:
+        poi_debug.write(poi['id'])
+        poi_debug.write("\n")
+        try:
+            json.dump(poi, poi_debug)
+        except TypeError:
+            poi_debug.write("TypeError: Could not generate JSON.")
+        poi_debug.write("\n")
+    
+
+debugpoimarkers = {'name': "Debug", 'filterFunction': debugPoiMarkersFilter}
+
 # Display Signs and their Message
 def signFilter(poi):
     if poi['id'] == 'Sign':
-        return "\n".join([poi['Text1'], poi['Text2'], poi['Text3'], poi['Text4']])
+        if poi['Text1'] != "" or poi['Text2'] != "" or poi['Text3'] != "" or poi['Text4'] != "":
+            return "\n".join([poi['Text1'], poi['Text2'], poi['Text3'], poi['Text4']])
 
 signs = {'name': "Signs", 'filterFunction': signFilter}
 
@@ -31,20 +55,21 @@ signs = {'name': "Signs", 'filterFunction': signFilter}
 def chestFilter(poi):
     from overviewer_core import items
     if poi['id'] == "Chest":
-        chest_text = "Chest with {} items".format(len(poi['Items']))
-        items_text = "Chest\nEmpty"
-        chest_items = dict()
-        for item in poi["Items"]:
-            item_name = items.id2item(item["id"])
-            if item_name in chest_items:
-                chest_items[item_name] += item["Count"]
-            else:
-                chest_items[item_name] = item["Count"]
-        if len(chest_items) > 0:
-            items_text = ""
-            for item_name in chest_items.keys():
-                items_text += "\n{} of {}".format(chest_items[item_name], item_name)
-        return (chest_text, items_text)
+        if 'Items' in poi:
+            chest_text = "Chest with {} items".format(len(poi['Items']))
+            items_text = "Chest\nEmpty"
+            chest_items = dict()
+            for item in poi["Items"]:
+                item_name = items.id2item(item["id"])
+                if item_name in chest_items:
+                    chest_items[item_name] += item["Count"]
+                else:
+                    chest_items[item_name] = item["Count"]
+            if len(chest_items) > 0:
+                items_text = ""
+                for item_name in chest_items.keys():
+                    items_text += "\n{} of {}".format(chest_items[item_name], item_name)
+            return (chest_text, items_text)
 
 chests = {'name': "Chests", 'filterFunction': chestFilter, 'icon': "chest.png"}
 
@@ -52,7 +77,7 @@ chests = {'name': "Chests", 'filterFunction': chestFilter, 'icon': "chest.png"}
 def playerIcons(poi):
     def level2Icons (amount, fullIcon, halfIcon):
         icon_text = ""
-        full = amount/2
+        full = int(amount/2)
         half = amount%2
         for f in range(0, full):
             icon_text += "<img src='{}'>".format(fullIcon)
@@ -73,15 +98,16 @@ def playerIcons(poi):
         poi['icon'] = "http://overviewer.org/avatar/%s" % poi['EntityId']
         person_text = "Last known location for {}".format(poi['EntityId'])
         person_level_text = "{} ({})".format(poi['EntityId'], poi['XpLevel'])
-        armor_points = 0
+        #armor_points = 0
         #for i in poi['Inventory']:
         #    if i['Slot'] in (100, 101, 102, 103):
         #        armor_points += armor[i['id']]
-        armor_text = "Armor = {}/20\n{}".format(armor_points, level2Icons(armor_points,"armor.png","half_armor.png"))
+        #armor_text = "Armor = {}/20\n{}".format(armor_points, level2Icons(armor_points,"armor.png","half_armor.png"))
         health_text = "Health = {}/20\n{}".format(poi['Health'], level2Icons(poi['Health'],"heart.png","half_heart.png"))
         hunger_text = "Hunger = {}/20\n{}".format(poi['foodLevel'], level2Icons(poi['foodLevel'],"hunger.png","half_hunger.png"))
         location_text = "X:{} Y:{} Z:{}".format(poi['x'], poi['y'], poi['z'])
-        return (person_text, "\n".join([person_level_text, armor_text, health_text, hunger_text, location_text]))
+        return (person_text, "\n".join([person_level_text, health_text, hunger_text, location_text]))
+        #return (person_text, "\n".join([person_level_text, armor_text, health_text, hunger_text, location_text]))
 
 players = {'name': "Players", 'filterFunction': playerIcons}
 
@@ -96,13 +122,18 @@ def bedFilter(poi):
 playerSpawns = {'name': "Player Spawns", 'filterFunction': bedFilter, 'icon': "bed.png"}
 
 def petFilter(poi):
+    import os
     import json
     import urllib2
     UUID_LOOKUP_URL = 'https://sessionserver.mojang.com/session/minecraft/profile/'
+    tmp_dir = os.environ['MCOVERVIEWERTMP']
+    UUID_DIR = tmp_dir + '/uuid'
+    if not os.path.exists(UUID_DIR):
+        os.makedirs(UUID_DIR)
     # Show the various pets a Player could have and where they are
     def level2Icons (amount, fullIcon, halfIcon):
         icon_text = ""
-        full = amount/2
+        full = int(amount/2)
         half = amount%2
         for f in range(0, full):
             icon_text += "<img src='{}'>".format(fullIcon)
@@ -133,12 +164,6 @@ def petFilter(poi):
             poi['icon'] = "wolf.png"
             pet_text = "Wolf"
             health_max = 20
-            #for n in poi:
-                #pet_text += "\n{}={}".format(n,poi[n])
-            #if 'Owner' in poi and poi['Owner'] != "":
-                #pet_text = "{}'s Wolf".format(poi['Owner'])
-                #image_html = "<img src='http://overviewer.org/avatar/{}' />".format(poi['Owner'])
-                #health_text = "Health = {}/20\n{}".format(poi['Health'], level2Icons(poi['Health'],"heart.png","half_heart.png"))
 
         if poi['id'] in ["Ocelot", "Ozelot"]:
             poi['icon'] = "ocelot.png"
@@ -150,14 +175,26 @@ def petFilter(poi):
             playername = poi['Owner']
 
         if 'OwnerUUID' in poi and poi['OwnerUUID'] != "":
-            try:
-                profile = json.loads(urllib2.urlopen(UUID_LOOKUP_URL + poi['OwnerUUID'].replace('-','')).read())
-                #if 'name' in profile:
-                    #playername = profile['name']
-            except (ValueError, urllib2.URLError):
-                print "Unable to get player name for UUID '{0}'".format(poi['OwnerUUID'])
-            except:
-                print "Unexpected error:", sys.exc_info()[0]
+            ownerUUID = poi['OwnerUUID'].replace('-','')
+            ownerUUIDFile = UUID_DIR + "/" + ownerUUID
+            if os.path.isfile(ownerUUIDFile):
+                print "From UUID File: " + ownerUUIDFile
+                with open(ownerUUIDFile, 'r') as uuid_file:
+                    playername = uuid_file.read()
+            else:
+                try:
+                    retval = urllib2.urlopen(UUID_LOOKUP_URL + ownerUUID).read()
+                    #print "Received:" + retval
+                    profile = json.loads(retval)
+                    if 'name' in profile:
+                        playername = profile['name']
+                        with open(ownerUUIDFile, 'w') as uuid_file:
+                            uuid_file.write(playername)
+                        print "Create UUID File: " + ownerUUIDFile
+                except (ValueError, urllib2.URLError):
+                    print "Unable to get player name for UUID '{0}'".format(poi['OwnerUUID'])
+                except:
+                    print "Unexpected error:", sys.exc_info()[0]
         if playername != "":
             pet_text = "{}'s {}".format(playername, pet_text)
             image_html = "<img src='http://overviewer.org/avatar/{}' />".format(playername)
@@ -172,7 +209,20 @@ pets = {'name': "Pets", 'filterFunction': petFilter}
 
 def spawnerFilter(poi):
     if poi["id"] == "MobSpawner":
-        info = "[MobSpawner] \n%s \n" % poi["EntityId"]
+        info = "Mob Spawner\n"
+        if "EntityId" in poi:
+            info += "%s \n" % poi["EntityId"]
+        elif "SpawnPotentials" in poi:
+            plus = ""
+            for spawns in poi["SpawnPotentials"]:
+                weight = ""
+                entity = ""
+                if "Weight" in spawns:
+                    weight = spawns["Weight"]
+                if "Entity" in spawns and "id" in spawns["Entity"]:
+                    entity = spawns["Entity"]["id"]
+                info += "{}{}({})\n".format(plus, entity, weight)
+                plus = " or "
         info += "X:{} Y:{} Z:{}".format(poi['x'], poi['y'], poi['z'])
         return info
 
@@ -200,8 +250,9 @@ renders["day"] = {
     'dimension': "overworld",
     'northdirection': "upper-left",
     'texturepath': os.environ['MCTEXTUREPATH'],
-    'markers': [signs, chests, players, playerSpawns, pets, netherportals],
+    'markers': [signs, chests, players, playerSpawns, pets, spawners],
 }
+    #'markers': [debugpoimarkers, signs, chests, players, playerSpawns, pets, netherportals],
 
 renders["night"] = {
     'world': 'mainworld',
@@ -219,9 +270,8 @@ renders["cave"] = {
     'dimension': "overworld",
     'northdirection': "upper-left",
     'texturepath': os.environ['MCTEXTUREPATH'],
-    'markers': [signs, chests, players, pets, spawners, netherportals],
+    'markers': [signs, chests, players, pets, spawners],
 }
-
 
 renders["daysw"] = {
     'world': 'mainworld',
@@ -230,8 +280,9 @@ renders["daysw"] = {
     'dimension': "overworld",
     'northdirection': "lower-right",
     'texturepath': os.environ['MCTEXTUREPATH'],
-    'markers': [signs, chests, players, playerSpawns, pets, netherportals],
+    'markers': [signs, chests, players, playerSpawns, pets, spawners],
 }
+    #'markers': [signs, chests, players, playerSpawns, pets, netherportals],
 
 renders["nightsw"] = {
     'world': 'mainworld',
@@ -249,8 +300,9 @@ renders["cavesw"] = {
     'dimension': "overworld",
     'northdirection': "lower-right",
     'texturepath': os.environ['MCTEXTUREPATH'],
-    'markers': [signs, chests, players, pets, spawners, netherportals],
+    'markers': [signs, chests, players, pets, spawners],
 }
+    #'markers': [signs, chests, players, pets, spawners, netherportals],
 
 renders["nether"] = {
     'world': 'mainworld',
@@ -259,8 +311,9 @@ renders["nether"] = {
     'dimension': "nether",
     'northdirection': "upper-left",
     'texturepath': os.environ['MCTEXTUREPATH'],
-    'markers': [signs, chests, players, pets, spawners, netherportals],
+    'markers': [signs, chests, players, pets, spawners],
 } 
+    #'markers': [signs, chests, players, pets, spawners, netherportals],
 
 renders["nethersw"] = {
     'world': 'mainworld',
@@ -269,8 +322,9 @@ renders["nethersw"] = {
     'dimension': "nether",
     'northdirection': "lower-right",
     'texturepath': os.environ['MCTEXTUREPATH'],
-    'markers': [signs, chests, players, pets, spawners, netherportals],
+    'markers': [signs, chests, players, pets, spawners],
 } 
+    #'markers': [signs, chests, players, pets, spawners, netherportals],
 
 renders['biomeover'] = {
     'world': 'mainworld',
