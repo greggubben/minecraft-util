@@ -20,4 +20,4 @@ DIM*
 eula.txt
 *crash-reports
 *crontab
-slack.conf
+#slack.conf
