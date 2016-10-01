@@ -4,6 +4,10 @@
 
 # Get the settins for Nick's Minecraft Server on 192.168.48.40
 . /proj/minecraft/bin/settings40.sh
+
+#
+# The following file defines SLACK_URL and SLACK_SECRET based on
+# what slack provided when the web hook was created
 . /proj/minecraft/bin/slack.conf
 
 SLACK_USERNAME="Nick's Minecraft Server"
