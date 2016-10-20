@@ -197,7 +197,7 @@ mc_sync_offline() {
     echo "Sync in progress..."
 
     mkdir -p $MCSERVEROFFLINE
-    rsync -a $MCSERVERWORLD/ $MCSERVEROFFLINE/
+    rsync -a --delete $MCSERVERWORLD/ $MCSERVEROFFLINE/
     WORLD_SIZE=$(du -s $MCSERVERWORLD/ | sed s/[[:space:]].*//g)
     OFFLINE_SIZE=$(du -s $MCSERVEROFFLINE/ | sed s/[[:space:]].*//g)
     echo "WORLD  : $WORLD_SIZE KB"
