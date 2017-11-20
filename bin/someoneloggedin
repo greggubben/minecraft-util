@@ -1,0 +1,8 @@
+MCLOGS="/proj/minecraft/servers/minecraft40/logs"
+loggedingz=`find $MCLOGS/*.gz -mtime -2 -print -exec zcat '{}' \; | grep "joined the game"`
+loggedin=`find $MCLOGS/latest.log -mtime -2 -print -exec cat '{}' \; | grep "joined the game"`
+
+if [ "$loggedingz$loggedin" ]
+then
+        echo "someone logged in"
+fi

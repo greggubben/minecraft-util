@@ -20,7 +20,9 @@ import os
 ################################################################################
 # Functions
 
+#
 # Debug the POI Markers
+#
 def debugPoiMarkersFilter(poi):
     import os
     import json
@@ -43,24 +45,77 @@ def debugPoiMarkersFilter(poi):
 
 debugpoimarkers = {'name': "Debug", 'filterFunction': debugPoiMarkersFilter}
 
+#
 # Display Signs and their Message
+#
 def signFilter(poi):
-    if poi['id'] == 'Sign':
-        if poi['Text1'] != "" or poi['Text2'] != "" or poi['Text3'] != "" or poi['Text4'] != "":
-            return "\n".join([poi['Text1'], poi['Text2'], poi['Text3'], poi['Text4']])
+    import sys
+    import json
+    # Function to extract text lines from the new minecraft:sign POI
+    def getSignLine(poi,line):
+        text = ""
+        textLineName = "Text" + line
+        try:
+            if textLineName in poi:
+                textline = poi[textLineName]
+                #print "textline=:", textline, type(textline)
+                if isinstance(textline,unicode):
+                    textdict = json.loads(textline)
+                elif isinstance(textline, dict):
+                    textdict = textline
+                if 'text' in textdict:
+                    u = textdict['text']
+                    text = textdict['text']
+        except Exception as e:
+            print "Unexpected error:", sys.exc_info()[0]
+            print "Text:", poi
+            print "Exception"
+            print type(e)
+            print e.args
+            print e
+        return text
+
+
+    if poi['id'] in ["Sign", "minecraft:sign"]:
+        text1 = ""
+        text2 = ""
+        text3 = ""
+        text4 = ""
+        if poi['id'] in ["Sign"]:
+            if 'Text1' in poi:
+                text1 = poi['Text1']
+            if 'Text2' in poi:
+                text2 = poi['Text2']
+            if 'Text3' in poi:
+                text3 = poi['Text3']
+            if 'Text4' in poi:
+                text4 = poi['Text4']
+
+        if poi['id'] in ["minecraft:sign"]:
+            text1 = getSignLine(poi,"1")
+            text2 = getSignLine(poi,"2")
+            text3 = getSignLine(poi,"3")
+            text4 = getSignLine(poi,"4")
+
+        if text1 != "" or text2 != "" or text3 != "" or text4 != "":
+            return "\n".join([text1, text2, text3, text4])
 
 signs = {'name': "Signs", 'filterFunction': signFilter}
 
+#
 # Display Chests and how many items are in them
+#
 def chestFilter(poi):
     from overviewer_core import items
-    if poi['id'] == "Chest":
+    if poi['id'] in ["Chest", "minecraft:chest"]:
         if 'Items' in poi:
             chest_text = "Chest with {} items".format(len(poi['Items']))
             items_text = "Chest\nEmpty"
             chest_items = dict()
             for item in poi["Items"]:
                 item_name = items.id2item(item["id"])
+                if item_name.startswith("minecraft:"):
+                    item_name = item_name[10:]
                 if item_name in chest_items:
                     chest_items[item_name] += item["Count"]
                 else:
@@ -73,7 +128,9 @@ def chestFilter(poi):
 
 chests = {'name': "Chests", 'filterFunction': chestFilter, 'icon': "chest.png"}
 
+#
 # Display the last know location of a Player
+#
 def playerIcons(poi):
     def level2Icons (amount, fullIcon, halfIcon):
         icon_text = ""
@@ -111,6 +168,9 @@ def playerIcons(poi):
 
 players = {'name': "Players", 'filterFunction': playerIcons}
 
+#
+# Show the Player's spawn points
+#
 def bedFilter(poi):
     #'''This finds the beds and formats the popup bubble a bit.'''
     if poi['id'] == 'PlayerSpawn':
@@ -121,8 +181,12 @@ def bedFilter(poi):
 
 playerSpawns = {'name': "Player Spawns", 'filterFunction': bedFilter, 'icon': "bed.png"}
 
+#
+# Show all the pets in the map
+#
 def petFilter(poi):
     import os
+    import sys
     import json
     import urllib2
     UUID_LOOKUP_URL = 'https://sessionserver.mojang.com/session/minecraft/profile/'
@@ -141,7 +205,7 @@ def petFilter(poi):
             icon_text += "<img src='{}'>".format(halfIcon)
         return icon_text
 
-    if poi['id'] in ["EntityHorse", "Wolf", "Ocelot", "Ozelot"]:
+    if poi['id'] in ["EntityHorse", "Wolf", "Ocelot", "minecraft:horse", "minecraft:donkey", "minecraft:mule", "minecraft:skeleton_horse", "minecraft:zombie_horse", "minecraft:wolf", "minecraft:ocelot", "minecraft:llama"]:
         pet_text = poi['id']
         image_html = ""
         health_text = ""
@@ -160,13 +224,43 @@ def petFilter(poi):
                 pet_text = "Skeleton Horse"
             health_max = 30
 
-        if poi['id'] == "Wolf":
-            poi['icon'] = "wolf.png"
+        if poi['id'] in ["minecraft:horse"]:
+            poi['icon'] = "horse_head.png"
+            pet_text = "Horse"
+            health_max = 30
+
+        if poi['id'] in ["minecraft:donkey"]:
+            poi['icon'] = "donkey_head.png"
+            pet_text = "Donkey"
+            health_max = 30
+
+        if poi['id'] in ["minecraft:mule"]:
+            poi['icon'] = "mule_head.png"
+            pet_text = "Mule"
+            health_max = 30
+
+        if poi['id'] in ["minecraft:skeleton_horse"]:
+            poi['icon'] = "skeleton_horse_head.png"
+            pet_text = "Skeleton Horse"
+            health_max = 30
+
+        if poi['id'] in ["minecraft:zombie_horse"]:
+            poi['icon'] = "zombie_horse_head.png"
+            pet_text = "Skeleton Horse"
+            health_max = 30
+
+        if poi['id'] in ["minecraft:llama"]:
+            poi['icon'] = "llama_head.png"
+            pet_text = "Llama"
+            health_max = 22
+
+        if poi['id'] in ["Wolf", "minecraft:wolf"]:
+            poi['icon'] = "wolf_face.png"
             pet_text = "Wolf"
             health_max = 20
 
-        if poi['id'] in ["Ocelot", "Ozelot"]:
-            poi['icon'] = "ocelot.png"
+        if poi['id'] in ["Ocelot", "minecraft:ocelot"]:
+            poi['icon'] = "ocelot_face.png"
             pet_text = "Ocelot"
             health_max = 20
 
@@ -207,8 +301,11 @@ def petFilter(poi):
 
 pets = {'name': "Pets", 'filterFunction': petFilter}
 
+#
+# Show the Mob Spawners on the map
+#
 def spawnerFilter(poi):
-    if poi["id"] == "MobSpawner":
+    if poi["id"] in ["MobSpawner", "minecraft:mob_spawner"]:
         info = "Mob Spawner\n"
         if "EntityId" in poi:
             info += "%s \n" % poi["EntityId"]
@@ -228,6 +325,134 @@ def spawnerFilter(poi):
 
 spawners = {'name': "Spawners", 'filterFunction': spawnerFilter, 'icon': "spawner.png"}
 
+#
+# Show the Tags on the map
+#
+def tagFilter(poi):
+    import os
+    import sys
+    import json
+    import urllib2
+    from overviewer_core import items
+    UUID_LOOKUP_URL = 'https://sessionserver.mojang.com/session/minecraft/profile/'
+    tmp_dir = os.environ['MCOVERVIEWERTMP']
+    UUID_DIR = tmp_dir + '/uuid'
+    if not os.path.exists(UUID_DIR):
+        os.makedirs(UUID_DIR)
+
+    if "CustomName" in poi and poi["CustomName"] != "":
+        name = poi["CustomName"]
+            
+        item_name = poi["id"]
+        #item_name = items.id2item(poi["id"])
+        if item_name.startswith("minecraft:"):
+            item_name = item_name[10:]
+
+        playername = ""
+        if 'Owner' in poi and poi['Owner'] != "":
+            playername = poi['Owner']
+
+        if 'OwnerUUID' in poi and poi['OwnerUUID'] != "":
+            ownerUUID = poi['OwnerUUID'].replace('-','')
+            ownerUUIDFile = UUID_DIR + "/" + ownerUUID
+            if os.path.isfile(ownerUUIDFile):
+                print "From UUID File: " + ownerUUIDFile
+                with open(ownerUUIDFile, 'r') as uuid_file:
+                    playername = uuid_file.read()
+            else:
+                try:
+                    retval = urllib2.urlopen(UUID_LOOKUP_URL + ownerUUID).read()
+                    #print "Received:" + retval
+                    profile = json.loads(retval)
+                    if 'name' in profile:
+                        playername = profile['name']
+                        with open(ownerUUIDFile, 'w') as uuid_file:
+                            uuid_file.write(playername)
+                        print "Create UUID File: " + ownerUUIDFile
+                except (ValueError, urllib2.URLError):
+                    print "Unable to get player name for UUID '{0}'".format(poi['OwnerUUID'])
+                except:
+                    print "Unexpected error:", sys.exc_info()[0]
+
+        if playername != "":
+            playername = playername + "'s"
+
+        return "{}\n{} {}".format(name, playername, item_name)
+
+tags = {'name': "Tags", 'filterFunction': tagFilter, 'icon': "tag.png"}
+
+#
+# Show the Villagers on the map
+#
+def villagerFilter(poi):
+    professions = {0: {"name": "Farmer",
+                       "image": "farmer.png",
+                       "careers": {0: "Unknown",
+                                   1: "Farmer",
+                                   2: "Fisherman",
+                                   3: "Shepherd",
+                                   4: "Fletcher"}
+                      },
+                   1: {"name": "Librarian",
+                       "image": "librarian.png",
+                       "careers": {0: "Unknown",
+                                   1: "Librarian",
+                                   2: "Cartographer"}
+                      },
+                   2: {"name": "Cleric",
+                       "image": "cleric.png",
+                       "careers": {0: "Unknown",
+                                   1: "Cleric"}
+                      },
+                   3: {"name": "Blacksmith",
+                       "image": "blacksmith.png",
+                       "careers": {0: "Unknown",
+                                   1: "Armorer",
+                                   2: "Weapon Smith",
+                                   3: "Tool Smith"}
+                      },
+                   4: {"name": "Butcher",
+                       "image": "butcher.png",
+                       "careers": {0: "Unknown",
+                                   1: "Butcher",
+                                   2: "Leatherworker"}
+                      },
+                   5: {"name": "Nitwit",
+                       "image": "nitwit.png",
+                       "careers": {0: "Unknown",
+                                   1: "Nitwit"}
+                      }
+                  }
+
+    if poi["id"] == "minecraft:villager":
+        profession_name = ""
+        career_name = ""
+        custom_name = ""
+        if "CustomName" in poi and poi["CustomName"] != "":
+            custom_name = poi["CustomName"] + "\n"
+        if "Profession" in poi:
+            profession_id = poi["Profession"]
+            #print "profession_id", profession_id, type(profession_id)
+            profession_name = profession_id
+            if profession_id in professions:
+                profession = professions[profession_id]
+                profession_name = profession["name"]
+                #print "profession_name", profession_name
+                poi["icon"] = profession["image"]
+                if "Career" in poi:
+                    career_id = poi["Career"]
+                    #print "career_id", career_id, type(career_id)
+                    career_name = career_id
+                    if career_id in profession["careers"]:
+                        career_name = profession["careers"][career_id]
+
+        return "{}Profession: {}\nCareer: {}".format(custom_name, profession_name, career_name)
+
+villagers = {'name': "Villagers", 'filterFunction': villagerFilter}
+
+#
+# Show the Portals on the map
+#
 def netherportalFilter(poi):
     if poi["id"] == "Nether Portal":
         info = "Nether Portal\n"
@@ -250,7 +475,7 @@ renders["day"] = {
     'dimension': "overworld",
     'northdirection': "upper-left",
     'texturepath': os.environ['MCTEXTUREPATH'],
-    'markers': [signs, chests, players, playerSpawns, pets, spawners],
+    'markers': [debugpoimarkers, signs, chests, players, playerSpawns, pets, spawners, tags, villagers],
 }
     #'markers': [debugpoimarkers, signs, chests, players, playerSpawns, pets, netherportals],
 
@@ -270,7 +495,7 @@ renders["cave"] = {
     'dimension': "overworld",
     'northdirection': "upper-left",
     'texturepath': os.environ['MCTEXTUREPATH'],
-    'markers': [signs, chests, players, pets, spawners],
+    'markers': [signs, chests, players, pets, spawners, tags],
 }
 
 renders["daysw"] = {
@@ -280,7 +505,7 @@ renders["daysw"] = {
     'dimension': "overworld",
     'northdirection': "lower-right",
     'texturepath': os.environ['MCTEXTUREPATH'],
-    'markers': [signs, chests, players, playerSpawns, pets, spawners],
+    'markers': [signs, chests, players, playerSpawns, pets, spawners, tags],
 }
     #'markers': [signs, chests, players, playerSpawns, pets, netherportals],
 
@@ -300,7 +525,7 @@ renders["cavesw"] = {
     'dimension': "overworld",
     'northdirection': "lower-right",
     'texturepath': os.environ['MCTEXTUREPATH'],
-    'markers': [signs, chests, players, pets, spawners],
+    'markers': [signs, chests, players, pets, spawners, tags],
 }
     #'markers': [signs, chests, players, pets, spawners, netherportals],
 
@@ -311,7 +536,7 @@ renders["nether"] = {
     'dimension': "nether",
     'northdirection': "upper-left",
     'texturepath': os.environ['MCTEXTUREPATH'],
-    'markers': [signs, chests, players, pets, spawners],
+    'markers': [signs, chests, players, pets, spawners, tags],
 } 
     #'markers': [signs, chests, players, pets, spawners, netherportals],
 
@@ -322,7 +547,7 @@ renders["nethersw"] = {
     'dimension': "nether",
     'northdirection': "lower-right",
     'texturepath': os.environ['MCTEXTUREPATH'],
-    'markers': [signs, chests, players, pets, spawners],
+    'markers': [signs, chests, players, pets, spawners, tags],
 } 
     #'markers': [signs, chests, players, pets, spawners, netherportals],
 

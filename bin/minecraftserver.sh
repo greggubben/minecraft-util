@@ -18,7 +18,7 @@
 # OFFLINE_WORLD='world-offline'
 # MCSERVERWEB     - the directory of the minecraft web directory
 # MCWEBASSETS     - the directory of the common images needed for Generating POI
-
+# MCLOGS          - the directory holding the logs
 
 # Common Minecraft Server Settings
 # Name of the Service
@@ -36,6 +36,7 @@ MAXHEAP=1024
 MINHEAP=1024
 HISTORY=1024
 INVOCATION="java -Xmx${MAXHEAP}M -Xms${MINHEAP}M -XX:+UseConcMarkSweepGC -XX:+CMSIncrementalPacing -XX:ParallelGCThreads=$CPU_COUNT -XX:+AggressiveOpts -jar $SERVICE $OPTIONS"
+LOGCHECKDAYS=2
 
 # Common Map Builder Settings
 # Define the Map Generating program
@@ -54,7 +55,7 @@ export OV_WORLD OV_OUTPUTBASEDIR OV_WEBASSETS MCTEXTUREPATH
 # Common Log Analyzer Settings
 LOGANALYZER="$MCLOGALYZERDIR/mclogalyzer/mclogalyzer.py"
 
-ME=`whoami`
+ME=$(whoami)
 as_user() {
   if [ $ME == $USERNAME ] ; then
     bash -c "$1"
@@ -62,6 +63,22 @@ as_user() {
     su - $USERNAME -p -c "$1"
   fi
 }
+
+login_activity() {
+  loggedingz=$(find $MCSERVERLOGS/*.gz -mtime -$LOGCHECKDAYS -print -exec zcat '{}' \; | grep "joined the game")
+  loggedin=$(find $MCSERVERLOGS/latest.log -mtime -$LOGCHECKDAYS -print -exec cat '{}' \; | grep "joined the game")
+
+  result=1
+  if [ "$loggedingz$loggedin" ]
+  then
+    # Someone logged in
+    return 0
+  else
+    # No one logged in
+    return 1
+  fi
+}
+
 
 mc_start() {
   if pgrep -u $USERNAME -f $SERVICE > /dev/null
@@ -134,53 +151,85 @@ mc_stop() {
   fi
 }
 
-mc_check_update() {
-   as_user "cd $MCPATH && wget -q -O $MCPATH/versions https://launchermeta.mojang.com/mc/game/version_manifest.json"
-   snap=`cat $MCPATH/versions | sed 's/\n//g' | sed 's/}/\n/g' | grep latest | sed 's/{/\n/g' | sed 's/,/\n/g' | grep snapshot`
-   snapVersion=`echo $snap | awk -F'\"' '{print $4}'`
-   re=`cat $MCPATH/versions | sed 's/\n//g' | sed 's/}/\n/g' | grep latest | sed 's/{/\n/g' | sed 's/,/\n/g' | grep release`
-   reVersion=`echo $re | awk -F'\"' '{print $4}'`
-   echo "Latest Versions"
-   echo "Release:  $reVersion"
-   echo "Snapshot: $snapVersion"
-   as_user "rm $MCPATH/versions"
+
+#
+# From the Minecraft master version manifest find the latest versions for the server.
+#
+get_latest_versions() {
+  # Get the file from Mojang
+  as_user "cd $MCPATH && wget -q -O $MCPATH/versions https://launchermeta.mojang.com/mc/game/version_manifest.json"
+
+  # Parse the file to get the Snapshot version
+  snap=$(cat $MCPATH/versions | sed 's/\n//g' | sed 's/}/\n/g' | grep latest | sed 's/{/\n/g' | sed 's/,/\n/g' | grep snapshot)
+  snapVersion=$(echo $snap | awk -F'\"' '{print $4}')
+
+  # Parse the file to get the Release version
+  re=$(cat $MCPATH/versions | sed 's/\n//g' | sed 's/}/\n/g' | grep latest | sed 's/{/\n/g' | sed 's/,/\n/g' | grep release)
+  reVersion=$(echo $re | awk -F'\"' '{print $4}')
+
+  # Don't need the file anymore
+  as_user "rm $MCPATH/versions"
+  
+  # Return the Released and Snapshot Versions
+  echo "${reVersion}:${snapVersion}"
 }
 
 
+#
+# Check and Display the latest version of the minecraft server
+#
+mc_update_check() {
+  IFS=":"
+  read reVersion snapVersion <<< "$(get_latest_versions)"
+  echo "Latest Available Versions"
+  echo "Release:  $reVersion"
+  echo "Snapshot: $snapVersion"
+
+  currVersion=""
+  if [ -f "$MCSERVERVERSION" ]
+  then
+    currVersion=`cat $MCSERVERVERSION`
+  fi
+  echo "Installed Version"
+  echo "Current:  $currVersion"
+  if [ "$reVersion" != "$currVersion" ]
+  then
+    e=$(slack.sh "New server version ${reVersion} is available." "boom")
+    echo "Need to Update!"
+  fi
+}
+
+#
+# Update the Minecraft Server
+#
 mc_update() {
    if pgrep -u $USERNAME -f $SERVICE > /dev/null
    then
      echo "$SERVICE is running! Will not start update."
    else
-     #as_user "cd $MCPATH && wget -q -O $MCPATH/versions http://s3.amazonaws.com/Minecraft.Download/versions/versions.json"
-     as_user "cd $MCPATH && wget -q -O $MCPATH/versions https://launchermeta.mojang.com/mc/game/version_manifest.json"
-        #snap=`awk -v linenum=3 'NR == linenum {print; exit}' "$MCPATH/versions"`
-        snap=`cat $MCPATH/versions | sed 's/\n//g' | sed 's/}/\n/g' | grep latest | sed 's/{/\n/g' | sed 's/,/\n/g' | grep snapshot`
-        snapVersion=`echo $snap | awk -F'\"' '{print $4}'`
-        #re=`awk -v linenum=4 'NR == linenum {print; exit}' "$MCPATH/versions"`
-        re=`cat $MCPATH/versions | sed 's/\n//g' | sed 's/}/\n/g' | grep latest | sed 's/{/\n/g' | sed 's/,/\n/g' | grep release`
-        reVersion=`echo $re | awk -F'\"' '{print $4}'`
-        echo "Latest Versions"
-        echo "Release: $reVersion"
-        echo "Snapshot: $snapVersion"
-        as_user "rm $MCPATH/versions"
-        if [ "$1" == "snapshot" ]; then
-          echo "Getting latest snapshot $snapVersion"
-          MC_SERVER_URL=http://s3.amazonaws.com/Minecraft.Download/versions/$snapVersion/minecraft_server.$snapVersion.jar
-        else
-          echo "Getting latest release $reVersion"
-          MC_SERVER_URL=http://s3.amazonaws.com/Minecraft.Download/versions/$reVersion/minecraft_server.$reVersion.jar
-        fi
+     version=""
+     IFS=":"
+     read reVersion snapVersion <<< "$(get_latest_versions)"
+     if [ "$1" == "snapshot" ]; then
+       echo "Getting latest snapshot $snapVersion"
+       version="$snapVersion"
+     else
+       echo "Getting latest release $reVersion"
+       version="$reVersion"
+     fi
+     MC_SERVER_URL=http://s3.amazonaws.com/Minecraft.Download/versions/$version/minecraft_server.$version.jar
      as_user "cd $MCPATH && wget -q -O $MCPATH/minecraft_server.jar.update $MC_SERVER_URL"
      if [ -f $MCPATH/minecraft_server.jar.update ]
      then
-       if `diff $MCPATH/$SERVICE $MCPATH/minecraft_server.jar.update >/dev/null`
+       if $(diff $MCPATH/$SERVICE $MCPATH/minecraft_server.jar.update >/dev/null)
        then
          as_user "rm $MCPATH/minecraft_server.jar.update"
          echo "You are already running the latest version of $SERVICE."
        else
          as_user "mv $MCPATH/minecraft_server.jar.update $MCPATH/$SERVICE"
          echo "Minecraft successfully updated."
+	 echo "$version" > $MCSERVERVERSION
+         e=$(slack.sh "Server updated to version ${version}." "star")
        fi
      else
        echo "Minecraft update could not be downloaded."
@@ -211,7 +260,7 @@ mc_sync_offline() {
 mc_backup() {
     mc_saveoff
 
-    NOW=`date "+%Y-%m-%d_%Hh%M"`
+    NOW=$(date "+%Y-%m-%d_%Hh%M")
     BACKUP_FILE="$BACKUPPATH/${WORLD}_${NOW}.tar"
     echo "Backing up minecraft world..."
     #as_user "cd $MCPATH && cp -r $WORLD $BACKUPPATH/${WORLD}_`date "+%Y.%m.%d_%H.%M"`"
@@ -262,18 +311,30 @@ mc_loganalyzer() {
     as_user "$LOGANALYZER $MCSERVERLOGS $MCSERVERWEB/stats.html"
 }
 
+mc_someoneloggedin() {
+    #
+    # Indicate if someone logged in
+    #
+    if login_activity
+    then
+        echo "Someone logged in in the last $LOGCHECKDAYS days"
+    else
+        echo "No one logged in in the last $LOGCHECKDAYS days"
+    fi
+}
+
 mc_command() {
   if [ "$1" ]
   then
     command="$1";
     if pgrep -u $USERNAME -f $SERVICE > /dev/null
     then
-      pre_log_len=`wc -l "$MCPATH/logs/latest.log" | awk '{print $1}'`
+      pre_log_len=$(wc -l "$MCPATH/logs/latest.log" | awk '{print $1}')
       echo "$SERVICE is running... executing command"
       as_user "screen -p 0 -S $SCREEN_NAME -X eval 'stuff \"$command\"\015'"
       sleep .1 # assumes that the command will run and print to the log file in less than .1 seconds
       # print output
-      tail -n $[`wc -l "$MCPATH/logs/latest.log" | awk '{print $1}'`-$pre_log_len] "$MCPATH/logs/latest.log"
+      tail -n $[$(wc -l "$MCPATH/logs/latest.log" | awk '{print $1}')-$pre_log_len] "$MCPATH/logs/latest.log"
     else
       echo "$SERVICE was not running."
     fi
@@ -302,7 +363,7 @@ case "$1" in
     ;;
   update)
     if [[ "check" == $2 ]]; then
-      mc_check_update
+      mc_update_check
     else
       mc_stop
       mc_backup
@@ -324,26 +385,32 @@ case "$1" in
     mc_backup
     ;;
   buildmap)
-    echo "Started on: `date`"
+    echo "Started on: $(date)"
     echo
-    mc_saveoff
-    mc_sync_offline
-    mc_saveon
-    shift
+    if login_activity
+    then
+      mc_saveoff
+      mc_sync_offline
+      mc_saveon
+      shift
+      echo
+      echo "Building the Map"
+      echo
+      mc_buildmap "$*"
+      echo
+      echo "Generating the Points of Interest"
+      echo
+      mc_genpoi "$*"
+      echo
+      echo "Analyzing the Logs"
+      echo
+      mc_loganalyzer
+      e=$(slack.sh "New map generated." "earth_americas")
+    else
+      echo "No activity in the last $LOGCHECKDAYS days."
+    fi
     echo
-    echo "Building the Map"
-    echo
-    mc_buildmap "$*"
-    echo
-    echo "Generating the Points of Interest"
-    echo
-    mc_genpoi "$*"
-    echo
-    echo "Analyzing the Logs"
-    echo
-    mc_loganalyzer
-    echo
-    echo "Completed on: `date`"
+    echo "Completed on: $(date)"
     ;;
   genpoi)
     shift
@@ -363,9 +430,12 @@ case "$1" in
   command)
     mc_command "$2"
     ;;
+  someoneloggedin)
+    mc_someoneloggedin
+    ;;
 
   *)
-  echo "Usage: $0 {start|stop|backup|status|restart|display|hide|loganalyzer}"
+  echo "Usage: $0 {start|stop|backup|status|restart|display|hide|loganalyzer|someoneloggedin}"
   echo "       $0 command \"server command\""
   echo "       $0 sync [purge]"
   echo "       $0 update [snapshot|check]"
