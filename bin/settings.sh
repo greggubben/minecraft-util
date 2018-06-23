@@ -35,6 +35,14 @@ export MCTEXTUREPATH
 # MCLogalyzer settings
 MCLOGALYZERDIR=$MCROOT/mclogalyzer
 
+export MCLOGALYZERDIR
+
+# NAS Backup
+NASBACKUPHOST="minecraft@ubben-nas.local"
+NASBACKUPROOT="/volume1/Backup/minecraft/gregg-desktop"
+
+export NASBACKUPHOST NASBACKUPROOT
+
 # Update PATH to include minecraft/bin
 PATH=$PATH:$MCROOTBIN
 export PATH

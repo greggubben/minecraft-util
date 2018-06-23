@@ -246,7 +246,8 @@ mc_sync_offline() {
     echo "Sync in progress..."
 
     mkdir -p $MCSERVEROFFLINE
-    rsync -a --delete $MCSERVERWORLD/ $MCSERVEROFFLINE/
+    as_user "rsync -a --delete $MCSERVERWORLD/ $MCSERVEROFFLINE/"
+    as_user "rsync -a --delete $MCSERVEROFFLINE $NASBACKUPHOST:$NASBACKUPROOT/$SCREEN_NAME"
     WORLD_SIZE=$(du -s $MCSERVERWORLD/ | sed s/[[:space:]].*//g)
     OFFLINE_SIZE=$(du -s $MCSERVEROFFLINE/ | sed s/[[:space:]].*//g)
     echo "WORLD  : $WORLD_SIZE KB"
@@ -274,6 +275,7 @@ mc_backup() {
 
     echo "Compressing backup..."
     as_user "gzip -f \"$BACKUP_FILE\""
+    as_user "rsync -a $MCSERVERBACKUP $NASBACKUPHOST:$NASBACKUPROOT/$SCREEN_NAME"
     echo "Backup complete"
 }
 
