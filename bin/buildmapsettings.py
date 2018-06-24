@@ -81,7 +81,7 @@ def signFilter(poi):
         text2 = ""
         text3 = ""
         text4 = ""
-        if poi['id'] in ["Sign"]:
+        if poi['id'] in ["Sign", "minecraft:sign"]:
             if 'Text1' in poi:
                 text1 = poi['Text1']
             if 'Text2' in poi:
@@ -91,7 +91,7 @@ def signFilter(poi):
             if 'Text4' in poi:
                 text4 = poi['Text4']
 
-        if poi['id'] in ["minecraft:sign"]:
+        if poi['id'] in ["minecraft:sign_nomore"]:
             text1 = getSignLine(poi,"1")
             text2 = getSignLine(poi,"2")
             text3 = getSignLine(poi,"3")
@@ -467,6 +467,8 @@ worlds["mainworld"] = os.environ['OV_WORLD']
 outputdir = os.environ['OV_OUTPUTBASEDIR']
 
 customwebassets = os.environ['OV_WEBASSETS']
+
+processes = 6
 
 renders["day"] = {
     'world': 'mainworld',
