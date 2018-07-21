@@ -31,7 +31,7 @@ MCPATH=$MCSERVERROOT
 BACKUPPATH=$MCSERVERBACKUP
 # Invocation Settings
 OPTIONS='nogui'
-CPU_COUNT=2
+CPU_COUNT=4
 MAXHEAP=1024
 MINHEAP=1024
 HISTORY=1024
@@ -217,13 +217,14 @@ mc_update() {
        echo "Getting latest release $reVersion"
        version="$reVersion"
      fi
+     echo http://s3.amazonaws.com/Minecraft.Download/versions/$version/minecraft_server.$version.jar
      MC_SERVER_URL=http://s3.amazonaws.com/Minecraft.Download/versions/$version/minecraft_server.$version.jar
      as_user "cd $MCPATH && wget -q -O $MCPATH/minecraft_server.jar.update $MC_SERVER_URL"
      if [ -f $MCPATH/minecraft_server.jar.update ]
      then
        if $(diff $MCPATH/$SERVICE $MCPATH/minecraft_server.jar.update >/dev/null)
        then
-         as_user "rm $MCPATH/minecraft_server.jar.update"
+         #as_user "rm $MCPATH/minecraft_server.jar.update"
          echo "You are already running the latest version of $SERVICE."
        else
          as_user "mv $MCPATH/minecraft_server.jar.update $MCPATH/$SERVICE"
@@ -265,10 +266,10 @@ mc_backup() {
     BACKUP_FILE="$BACKUPPATH/${WORLD}_${NOW}.tar"
     echo "Backing up minecraft world..."
     #as_user "cd $MCPATH && cp -r $WORLD $BACKUPPATH/${WORLD}_`date "+%Y.%m.%d_%H.%M"`"
-    as_user "tar -C \"$MCPATH\" -cf \"$BACKUP_FILE\" $WORLD"
+    as_user "tar -C \"$MCPATH\" -cf \"$BACKUP_FILE\" ."
 
-    echo "Backing up $SERVICE"
-    as_user "tar -C \"$MCPATH\" -rf \"$BACKUP_FILE\" $SERVICE"
+    #echo "Backing up $SERVICE"
+    #as_user "tar -C \"$MCPATH\" -rf \"$BACKUP_FILE\" $SERVICE"
     #as_user "cp \"$MCPATH/$SERVICE\" \"$BACKUPPATH/minecraft_server_${NOW}.jar\""
 
     mc_saveon
