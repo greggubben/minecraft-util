@@ -468,7 +468,7 @@ outputdir = os.environ['OV_OUTPUTBASEDIR']
 
 customwebassets = os.environ['OV_WEBASSETS']
 
-processes = 6
+processes = 8
 
 renders["day"] = {
     'world': 'mainworld',

@@ -1,6 +1,7 @@
 #
-# Backup Gregg's files
+# Backup Minecraft main files
 #
+. /proj/minecraft/bin/settings.sh
 
 BACKUPHOST="minecraft@ubben-nas.local"
 BACKUPDIRROOT="/volume1/Backup/minecraft/gregg-desktop"
@@ -38,5 +39,5 @@ do_backup() {
 }
 
 # Backup key directories
-do_backup "/proj/minecraft" "" "--exclude=backup --exclude=world --exclude=www" 
+do_backup $MCROOT "" "--exclude=backup --exclude=world --exclude=www" 
 

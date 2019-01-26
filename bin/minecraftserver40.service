@@ -1,0 +1,38 @@
+[Unit]
+Description=Minecraft Server
+Documentation=
+
+Wants=network.target
+Wants=sysinit.target
+Wants=local-fs.target
+Wants=proj.mount
+After=network.target
+After=sysinit.target
+After=local-fs.target
+After=proj.mount
+After=home.mount
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+#User=minecraft
+#Group=minecraft
+#Nice=5
+#EnvironmentFile=/var/minecraft/unit.conf
+#KillMode=none
+#SuccessExitStatus=0 1
+
+#ProtectHome=true
+#ProtectSystem=full
+#PrivateDevices=true
+#NoNewPrivileges=true
+#PrivateTmp=true
+#InaccessibleDirectories=/root /sys /srv /opt /media /lost+found
+#ReadWriteDirectories=/proj/minecraft
+WorkingDirectory=/proj/minecraft/servers/minecraft40
+ExecStart=/proj/minecraft/bin/minecraftserver40 start
+ExecStop=/proj/minecraft/bin/minecraftserver40 stop
+ExecReload=/proj/minecraft/bin/minecraftserver40 restart
+
+[Install]
+WantedBy=multi-user.target
