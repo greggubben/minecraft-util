@@ -32,7 +32,7 @@ BACKUPPATH=$MCSERVERBACKUP
 # Invocation Settings
 OPTIONS='nogui'
 CPU_COUNT=4
-MAXHEAP=1024
+MAXHEAP=2048
 MINHEAP=1024
 HISTORY=1024
 INVOCATION="java -Xmx${MAXHEAP}M -Xms${MINHEAP}M -XX:+UseConcMarkSweepGC -XX:+CMSIncrementalPacing -XX:ParallelGCThreads=$CPU_COUNT -XX:+AggressiveOpts -jar $SERVICE $OPTIONS"
@@ -392,6 +392,7 @@ case "$1" in
     echo
     if login_activity
     then
+      e=$(slack.sh "Starting map generation." "globe_with_meridians")
       mc_saveoff
       mc_sync_offline
       mc_saveon
