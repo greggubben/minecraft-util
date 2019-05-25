@@ -1,0 +1,58 @@
+[Unit]
+Description=Minecraft Server 50
+Documentation=
+
+Wants=network.target
+After=network.target
+
+[Service]
+WorkingDirectory=/proj/minecraft/servers/minecraft50
+
+# Users Database is not available for within the unit,
+# only root and minecraft is available, everybody else is nobody
+PrivateUsers=true
+
+User=minecraft
+Group=minecraft
+#Nice=5
+#EnvironmentFile=/var/minecraft/unit.conf
+#KillMode=none
+#SuccessExitStatus=0 1
+
+ProtectSystem=full # Read only mapping of /usr /boot and /etc
+# /home, /root and /run/user seam to be empty from within the unit.
+# It is recommended to enable this setting for all long-running services
+#   (in particular network-facing ones).
+ProtectHome=true
+
+# /proc/sys, /sys, /proc/sysrq-trigger, /proc/latency_stats, /proc/acpi,
+# /proc/timer_stats, /proc/fs and /proc/irq will be read-only within the unit.
+# It is recommended to turn this on for most services.
+# Implies MountFlags=slave
+ProtectKernelTunables=true
+
+# Block module system calls, also /usr/lib/modules.
+# It is recommended to turn this on for most services that do not need
+# special file systems or extra kernel modules to work
+# Implies NoNewPrivileges=yes
+ProtectKernelModules=true
+
+# It is hence recommended to turn this on for most services.
+# Implies MountAPIVFS=yes
+ProtectControlGroups=true
+
+ExecStart=/proj/minecraft/bin/minecraftserver50 start
+ExecStop=/proj/minecraft/bin/minecraftserver50 stop
+ExecReload=/proj/minecraft/bin/minecraftserver50 restart
+
+[Install]
+WantedBy=multi-user.target
+
+#########
+# HowTo
+#########
+#
+# Enable/Start systemd service
+#    systemctl enable minecraftserver50
+#    systemctl start minecraftserver50
+#

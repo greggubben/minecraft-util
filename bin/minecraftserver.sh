@@ -55,6 +55,9 @@ export OV_WORLD OV_OUTPUTBASEDIR OV_WEBASSETS MCTEXTUREPATH
 # Common Log Analyzer Settings
 LOGANALYZER="$MCLOGALYZERDIR/mclogalyzer/mclogalyzer.py"
 
+reVersion=""
+snapVersion=""
+
 ME=$(whoami)
 as_user() {
   if [ $ME == $USERNAME ] ; then
@@ -161,18 +164,14 @@ get_latest_versions() {
   as_user "cd $MCPATH && wget -q -O $MCPATH/versions https://launchermeta.mojang.com/mc/game/version_manifest.json"
 
   # Parse the file to get the Snapshot version
-  snap=$(cat $MCPATH/versions | sed 's/\n//g' | sed 's/}/\n/g' | grep latest | sed 's/{/\n/g' | sed 's/,/\n/g' | grep snapshot)
-  snapVersion=$(echo $snap | awk -F'\"' '{print $4}')
+  snapVersion=$(cat $MCPATH/versions | jq '.latest.snapshot')
 
   # Parse the file to get the Release version
-  re=$(cat $MCPATH/versions | sed 's/\n//g' | sed 's/}/\n/g' | grep latest | sed 's/{/\n/g' | sed 's/,/\n/g' | grep release)
-  reVersion=$(echo $re | awk -F'\"' '{print $4}')
+  reVersion=$(cat $MCPATH/versions | jq '.latest.release')
 
   # Don't need the file anymore
   as_user "rm $MCPATH/versions"
   
-  # Return the Released and Snapshot Versions
-  echo "${reVersion}:${snapVersion}"
 }
 
 
@@ -180,8 +179,7 @@ get_latest_versions() {
 # Check and Display the latest version of the minecraft server
 #
 mc_update_check() {
-  IFS=":"
-  read reVersion snapVersion <<< "$(get_latest_versions)"
+  get_latest_versions
   echo "Latest Available Versions"
   echo "Release:  $reVersion"
   echo "Snapshot: $snapVersion"
@@ -209,8 +207,7 @@ mc_update() {
      echo "$SERVICE is running! Will not start update."
    else
      version=""
-     IFS=":"
-     read reVersion snapVersion <<< "$(get_latest_versions)"
+     get_latest_versions
      if [ "$1" == "snapshot" ]; then
        echo "Getting latest snapshot $snapVersion"
        version="$snapVersion"
@@ -218,9 +215,26 @@ mc_update() {
        echo "Getting latest release $reVersion"
        version="$reVersion"
      fi
-     echo http://s3.amazonaws.com/Minecraft.Download/versions/$version/minecraft_server.$version.jar
-     MC_SERVER_URL=http://s3.amazonaws.com/Minecraft.Download/versions/$version/minecraft_server.$version.jar
-     as_user "cd $MCPATH && wget -q -O $MCPATH/minecraft_server.jar.update $MC_SERVER_URL"
+
+     # Get Version detailed Manifest
+     jqCommand=".versions[] | select(.id == ""$version"") | .url"
+     #echo $jqCommand
+     versionURL=$(curl -s https://launchermeta.mojang.com/mc/game/version_manifest.json | jq -r "$jqCommand")
+     #echo $versionURL
+
+     # Get Server URL
+     jqCommand=".downloads.server.url"
+     #echo $jqCommand
+     serverURL=$(curl -s $versionURL | jq -r "$jqCommand")
+     #echo $serverURL
+
+     # Get Client URL
+     jqCommand=".downloads.client.url"
+     #echo $jqCommand
+     clientURL=$(curl -s $versionURL | jq -r "$jqCommand")
+     #echo $clientURL
+
+     as_user "cd $MCPATH && wget -q -O $MCPATH/minecraft_server.jar.update $serverURL"
      if [ -f $MCPATH/minecraft_server.jar.update ]
      then
        if $(diff $MCPATH/$SERVICE $MCPATH/minecraft_server.jar.update >/dev/null)
@@ -232,6 +246,7 @@ mc_update() {
          echo "Minecraft successfully updated."
 	 echo "$version" > $MCSERVERVERSION
          e=$(slack.sh "Server updated to version ${version}." "star")
+         as_user "cd $MCPATH && wget -q -O $MCCLIENTPATH/minecraft_client.jar $clientURL"
        fi
      else
        echo "Minecraft update could not be downloaded."
