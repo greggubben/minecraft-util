@@ -312,7 +312,7 @@ mc_buildmap() {
         FORCERENDER="--forcerender"
         rm $MCPATH/forcerender
     fi
-    echo as_user "$MAPBUILDER --config=$SETTINGS $FORCERENDER $*"
+    as_user "$MAPBUILDER --config=$SETTINGS $FORCERENDER $*"
 }
 
 mc_genpoi() {
