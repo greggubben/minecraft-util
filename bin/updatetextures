@@ -25,30 +25,35 @@ as_user() {
   fi
 }
 
-as_user "cd $MCTEXTUREPATH && wget -q -O $MCTEXTUREPATH/versions https://launchermeta.mojang.com/mc/game/version_manifest.json"
-re=`cat $MCTEXTUREPATH/versions | sed 's/\n//g' | sed 's/}/\n/g' | grep latest | sed 's/{/\n/g' | sed 's/,/\n/g' | grep release`
-reVersion=`echo $re | awk -F'\"' '{print $4}'`
-echo "Latest Versions"
-echo "Release: $reVersion"
-#as_user "rm $MCTEXTUREPATH/versions"
-echo "Getting latest release $reVersion"
-MC_SERVER_URL=http://s3.amazonaws.com/Minecraft.Download/versions/$reVersion/$reVersion.jar
+as_user "cp -R ~gubben/.minecraft/versions ~/.minecraft/versions"
 
-as_user "cd $MCTEXTUREPATH && wget -q -O $MCTEXTUREPATH/minecraft.jar.update $MC_SERVER_URL"
-if [ -f $MCTEXTUREPATH/minecraft.jar.update ]
-then
-  if `diff $MCTEXTUREPATH/minecraft.jar $MCTEXTUREPATH/minecraft.jar.update >/dev/null`
-  then
-    as_user "rm $MCTEXTUREPATH/minecraft.jar.update"
-    echo "You are already have the latest version."
-  else
-    as_user "mv $MCTEXTUREPATH/minecraft.jar.update $MCTEXTUREPATH/minecraft.jar"
-    as_user "rm -rf $MCTEXTUREPATH/assets.old"
-    as_user "mv $MCTEXTUREPATH/assets $MCTEXTUREPATH/assets.old"
-    as_user "cd $MCTEXTUREPATH && unzip minecraft.jar assets/*"
-    echo "Minecraft Client Texture Pack successfully updated."
-  fi
-else
-  echo "Minecraft Client update could not be downloaded."
-fi
+#
+# Older process
+#
+#as_user "cd $MCTEXTUREPATH && wget -q -O $MCTEXTUREPATH/versions https://launchermeta.mojang.com/mc/game/version_manifest.json"
+#re=`cat $MCTEXTUREPATH/versions | sed 's/\n//g' | sed 's/}/\n/g' | grep latest | sed 's/{/\n/g' | sed 's/,/\n/g' | grep release`
+#reVersion=`echo $re | awk -F'\"' '{print $4}'`
+#echo "Latest Versions"
+#echo "Release: $reVersion"
+##as_user "rm $MCTEXTUREPATH/versions"
+#echo "Getting latest release $reVersion"
+#MC_SERVER_URL=http://s3.amazonaws.com/Minecraft.Download/versions/$reVersion/$reVersion.jar
+#
+#as_user "cd $MCTEXTUREPATH && wget -q -O $MCTEXTUREPATH/minecraft.jar.update $MC_SERVER_URL"
+#if [ -f $MCTEXTUREPATH/minecraft.jar.update ]
+#then
+  #if `diff $MCTEXTUREPATH/minecraft.jar $MCTEXTUREPATH/minecraft.jar.update >/dev/null`
+  #then
+    #as_user "rm $MCTEXTUREPATH/minecraft.jar.update"
+    #echo "You are already have the latest version."
+  #else
+    #as_user "mv $MCTEXTUREPATH/minecraft.jar.update $MCTEXTUREPATH/minecraft.jar"
+    #as_user "rm -rf $MCTEXTUREPATH/assets.old"
+    #as_user "mv $MCTEXTUREPATH/assets $MCTEXTUREPATH/assets.old"
+    #as_user "cd $MCTEXTUREPATH && unzip minecraft.jar assets/*"
+    #echo "Minecraft Client Texture Pack successfully updated."
+  #fi
+#else
+  #echo "Minecraft Client update could not be downloaded."
+#fi
 

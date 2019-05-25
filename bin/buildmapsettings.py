@@ -473,10 +473,10 @@ processes = 8
 renders["day"] = {
     'world': 'mainworld',
     'title': 'Day NE',
-    'rendermode': smooth_lighting,
+    'rendermode': normal,
     'dimension': "overworld",
     'northdirection': "upper-left",
-    'texturepath': os.environ['MCTEXTUREPATH'],
+    'texturepath': os.environ['MCCLIENTZIP'],
     'markers': [debugpoimarkers, signs, chests, players, playerSpawns, pets, spawners, tags, villagers],
 }
     #'markers': [debugpoimarkers, signs, chests, players, playerSpawns, pets, netherportals],
@@ -484,10 +484,10 @@ renders["day"] = {
 renders["night"] = {
     'world': 'mainworld',
     'title': 'Night NE',
-    'rendermode': smooth_night,
+    'rendermode': night,
     'dimension': "overworld",
     'northdirection': "upper-left",
-    'texturepath': os.environ['MCTEXTUREPATH'],
+    'texturepath': os.environ['MCCLIENTZIP'],
 }
 
 renders["cave"] = {
@@ -496,7 +496,7 @@ renders["cave"] = {
     'rendermode': cave,
     'dimension': "overworld",
     'northdirection': "upper-left",
-    'texturepath': os.environ['MCTEXTUREPATH'],
+    'texturepath': os.environ['MCCLIENTZIP'],
     'markers': [signs, chests, players, pets, spawners, tags],
 }
 
@@ -506,7 +506,7 @@ renders["daysw"] = {
     'rendermode': smooth_lighting,
     'dimension': "overworld",
     'northdirection': "lower-right",
-    'texturepath': os.environ['MCTEXTUREPATH'],
+    'texturepath': os.environ['MCCLIENTZIP'],
     'markers': [signs, chests, players, playerSpawns, pets, spawners, tags],
 }
     #'markers': [signs, chests, players, playerSpawns, pets, netherportals],
@@ -517,7 +517,7 @@ renders["nightsw"] = {
     'rendermode': smooth_night,
     'dimension': "overworld",
     'northdirection': "lower-right",
-    'texturepath': os.environ['MCTEXTUREPATH'],
+    'texturepath': os.environ['MCCLIENTZIP'],
 }
 
 renders["cavesw"] = {
@@ -526,7 +526,7 @@ renders["cavesw"] = {
     'rendermode': cave,
     'dimension': "overworld",
     'northdirection': "lower-right",
-    'texturepath': os.environ['MCTEXTUREPATH'],
+    'texturepath': os.environ['MCCLIENTZIP'],
     'markers': [signs, chests, players, pets, spawners, tags],
 }
     #'markers': [signs, chests, players, pets, spawners, netherportals],
@@ -534,10 +534,10 @@ renders["cavesw"] = {
 renders["nether"] = {
     'world': 'mainworld',
     'title': 'Nether NE',
-    'rendermode': nether_smooth_lighting,
+    'rendermode': nether,
     'dimension': "nether",
     'northdirection': "upper-left",
-    'texturepath': os.environ['MCTEXTUREPATH'],
+    'texturepath': os.environ['MCCLIENTZIP'],
     'markers': [signs, chests, players, pets, spawners, tags],
 } 
     #'markers': [signs, chests, players, pets, spawners, netherportals],
@@ -548,7 +548,7 @@ renders["nethersw"] = {
     'rendermode': nether_smooth_lighting,
     'dimension': "nether",
     'northdirection': "lower-right",
-    'texturepath': os.environ['MCTEXTUREPATH'],
+    'texturepath': os.environ['MCCLIENTZIP'],
     'markers': [signs, chests, players, pets, spawners, tags],
 } 
     #'markers': [signs, chests, players, pets, spawners, netherportals],
@@ -559,7 +559,7 @@ renders['biomeover'] = {
     'rendermode': [ClearBase(), BiomeOverlay()],
     'dimension': "overworld",
     'northdirection': "upper-left",
-    'texturepath': os.environ['MCTEXTUREPATH'],
+    'texturepath': os.environ['MCCLIENTZIP'],
     'overlay': ['day']
 }
 
@@ -569,7 +569,7 @@ renders['mineralover'] = {
     'rendermode': [ClearBase(), MineralOverlay()],
     'dimension': "overworld",
     'northdirection': "upper-left",
-    'texturepath': os.environ['MCTEXTUREPATH'],
+    'texturepath': os.environ['MCCLIENTZIP'],
     'overlay': ['day']
 }
 
@@ -579,7 +579,7 @@ renders['spawnover'] = {
     'rendermode': [ClearBase(), SpawnOverlay()],
     'dimension': "overworld",
     'northdirection': "upper-left",
-    'texturepath': os.environ['MCTEXTUREPATH'],
+    'texturepath': os.environ['MCCLIENTZIP'],
     'overlay': ['day']
 }
 
@@ -589,6 +589,6 @@ renders['slimeover'] = {
     'rendermode': [ClearBase(), SlimeOverlay()],
     'dimension': "overworld",
     'northdirection': "upper-left",
-    'texturepath': os.environ['MCTEXTUREPATH'],
+    'texturepath': os.environ['MCCLIENTZIP'],
     'overlay': ['day']
 }

@@ -60,7 +60,8 @@ as_user() {
   if [ $ME == $USERNAME ] ; then
     bash -c "$1"
   else
-    su - $USERNAME -p -c "$1"
+    #su - $USERNAME -p -c "$1"
+    su $USERNAME -p -c "$1"
   fi
 }
 
@@ -288,7 +289,15 @@ mc_buildmap() {
     then
         mkdir $OV_OUTPUTBASEDIR
     fi
-    as_user "$MAPBUILDER --config=$SETTINGS $*"
+
+    # See if ForcedRender is required
+    FORCERENDER=""
+    if [ -f $MCPATH/forcerender ]
+    then
+        FORCERENDER="--forcerender"
+        rm $MCPATH/forcerender
+    fi
+    echo as_user "$MAPBUILDER --config=$SETTINGS $FORCERENDER $*"
 }
 
 mc_genpoi() {
@@ -392,6 +401,7 @@ case "$1" in
     echo
     if login_activity
     then
+      env
       e=$(slack.sh "Starting map generation." "globe_with_meridians")
       mc_saveoff
       mc_sync_offline
