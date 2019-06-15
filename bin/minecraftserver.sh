@@ -164,10 +164,10 @@ get_latest_versions() {
   as_user "cd $MCPATH && wget -q -O $MCPATH/versions https://launchermeta.mojang.com/mc/game/version_manifest.json"
 
   # Parse the file to get the Snapshot version
-  snapVersion=$(cat $MCPATH/versions | jq '.latest.snapshot')
+  snapVersion=$(cat $MCPATH/versions | jq -r '.latest.snapshot')
 
   # Parse the file to get the Release version
-  reVersion=$(cat $MCPATH/versions | jq '.latest.release')
+  reVersion=$(cat $MCPATH/versions | jq -r '.latest.release')
 
   # Don't need the file anymore
   as_user "rm $MCPATH/versions"
