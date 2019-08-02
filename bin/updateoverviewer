@@ -25,6 +25,6 @@ as_user() {
 rm -rf $MCOVERVIEWERDIR_OLD
 mv $MCOVERVIEWERDIR $MCOVERVIEWERDIR_OLD
 as_user "git clone $GIT_REPO $MCOVERVIEWERDIR"
-as_user "cd $MCOVERVIEWERDIR; python setup.py build"
+as_user "cd $MCOVERVIEWERDIR; ./setup.py build"
 
 exit 0

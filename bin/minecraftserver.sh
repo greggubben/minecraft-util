@@ -217,10 +217,10 @@ mc_update() {
      fi
 
      # Get Version detailed Manifest
-     jqCommand=".versions[] | select(.id == ""$version"") | .url"
-     #echo $jqCommand
+     jqCommand=".versions[] | select(.id == \"$version\") | .url"
+     echo $jqCommand
      versionURL=$(curl -s https://launchermeta.mojang.com/mc/game/version_manifest.json | jq -r "$jqCommand")
-     #echo $versionURL
+     echo $versionURL
 
      # Get Server URL
      jqCommand=".downloads.server.url"

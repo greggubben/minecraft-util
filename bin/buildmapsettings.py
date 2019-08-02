@@ -58,7 +58,7 @@ def signFilter(poi):
         try:
             if textLineName in poi:
                 textline = poi[textLineName]
-                #print "textline=:", textline, type(textline)
+                #print ("textline=:", textline, type(textline))
                 if isinstance(textline,unicode):
                     textdict = json.loads(textline)
                 elif isinstance(textline, dict):
@@ -67,12 +67,12 @@ def signFilter(poi):
                     u = textdict['text']
                     text = textdict['text']
         except Exception as e:
-            print "Unexpected error:", sys.exc_info()[0]
-            print "Text:", poi
-            print "Exception"
-            print type(e)
-            print e.args
-            print e
+            print ("Unexpected error:", sys.exc_info()[0])
+            print ("Text:", poi)
+            print ("Exception")
+            print (type(e))
+            print (e.args)
+            print (e)
         return text
 
 
@@ -188,7 +188,8 @@ def petFilter(poi):
     import os
     import sys
     import json
-    import urllib2
+    from urllib.request import urlopen
+    from urllib.error import URLError
     UUID_LOOKUP_URL = 'https://sessionserver.mojang.com/session/minecraft/profile/'
     tmp_dir = os.environ['MCOVERVIEWERTMP']
     UUID_DIR = tmp_dir + '/uuid'
@@ -272,23 +273,23 @@ def petFilter(poi):
             ownerUUID = poi['OwnerUUID'].replace('-','')
             ownerUUIDFile = UUID_DIR + "/" + ownerUUID
             if os.path.isfile(ownerUUIDFile):
-                print "From UUID File: " + ownerUUIDFile
+                print ("From UUID File: " + ownerUUIDFile)
                 with open(ownerUUIDFile, 'r') as uuid_file:
                     playername = uuid_file.read()
             else:
                 try:
-                    retval = urllib2.urlopen(UUID_LOOKUP_URL + ownerUUID).read()
-                    #print "Received:" + retval
+                    retval = urlopen(UUID_LOOKUP_URL + ownerUUID).read()
+                    #print ("Received:" + retval)
                     profile = json.loads(retval)
                     if 'name' in profile:
                         playername = profile['name']
                         with open(ownerUUIDFile, 'w') as uuid_file:
                             uuid_file.write(playername)
-                        print "Create UUID File: " + ownerUUIDFile
-                except (ValueError, urllib2.URLError):
-                    print "Unable to get player name for UUID '{0}'".format(poi['OwnerUUID'])
+                        print ("Create UUID File: " + ownerUUIDFile)
+                except (ValueError, URLError):
+                    print ("Unable to get player name for UUID '{0}'".format(poi['OwnerUUID']))
                 except:
-                    print "Unexpected error:", sys.exc_info()[0]
+                    print ("Unexpected error:", sys.exc_info()[0])
         if playername != "":
             pet_text = "{}'s {}".format(playername, pet_text)
             image_html = "<img src='http://overviewer.org/avatar/{}' />".format(playername)
@@ -332,7 +333,7 @@ def tagFilter(poi):
     import os
     import sys
     import json
-    import urllib2
+    from urllib.request import urlopen
     from overviewer_core import items
     UUID_LOOKUP_URL = 'https://sessionserver.mojang.com/session/minecraft/profile/'
     tmp_dir = os.environ['MCOVERVIEWERTMP']
@@ -356,23 +357,23 @@ def tagFilter(poi):
             ownerUUID = poi['OwnerUUID'].replace('-','')
             ownerUUIDFile = UUID_DIR + "/" + ownerUUID
             if os.path.isfile(ownerUUIDFile):
-                print "From UUID File: " + ownerUUIDFile
+                print ("From UUID File: " + ownerUUIDFile)
                 with open(ownerUUIDFile, 'r') as uuid_file:
                     playername = uuid_file.read()
             else:
                 try:
-                    retval = urllib2.urlopen(UUID_LOOKUP_URL + ownerUUID).read()
-                    #print "Received:" + retval
+                    retval = urlopen(UUID_LOOKUP_URL + ownerUUID).read()
+                    #print ("Received:" + retval)
                     profile = json.loads(retval)
                     if 'name' in profile:
                         playername = profile['name']
                         with open(ownerUUIDFile, 'w') as uuid_file:
                             uuid_file.write(playername)
-                        print "Create UUID File: " + ownerUUIDFile
-                except (ValueError, urllib2.URLError):
-                    print "Unable to get player name for UUID '{0}'".format(poi['OwnerUUID'])
+                        print ("Create UUID File: " + ownerUUIDFile)
+                except (ValueError, URLError):
+                    print ("Unable to get player name for UUID '{0}'".format(poi['OwnerUUID']))
                 except:
-                    print "Unexpected error:", sys.exc_info()[0]
+                    print ("Unexpected error:", sys.exc_info()[0])
 
         if playername != "":
             playername = playername + "'s"
@@ -432,16 +433,16 @@ def villagerFilter(poi):
             custom_name = poi["CustomName"] + "\n"
         if "Profession" in poi:
             profession_id = poi["Profession"]
-            #print "profession_id", profession_id, type(profession_id)
+            #print ("profession_id", profession_id, type(profession_id))
             profession_name = profession_id
             if profession_id in professions:
                 profession = professions[profession_id]
                 profession_name = profession["name"]
-                #print "profession_name", profession_name
+                #print ("profession_name", profession_name)
                 poi["icon"] = profession["image"]
                 if "Career" in poi:
                     career_id = poi["Career"]
-                    #print "career_id", career_id, type(career_id)
+                    #print ("career_id", career_id, type(career_id))
                     career_name = career_id
                     if career_id in profession["careers"]:
                         career_name = profession["careers"][career_id]
