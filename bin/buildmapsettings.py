@@ -554,6 +554,19 @@ renders["nethersw"] = {
 } 
     #'markers': [signs, chests, players, pets, spawners, netherportals],
 
+#end_lighting = [Base(), EdgeLines(), Lighting(strength=0.5)]
+#end_smooth_lighting = [Base(), EdgeLines(), SmoothLighting(strength=0.5)]
+
+renders["endday"] = {
+    'world': 'mainworld',
+    'title': 'End NE',
+    'rendermode': normal,
+    'dimension': "end",
+    'northdirection': "upper-left",
+    'texturepath': os.environ['MCCLIENTZIP'],
+    'rendermode': [Base(), EdgeLines(), Lighting(strength=0.5)],
+}
+
 renders['biomeover'] = {
     'world': 'mainworld',
     'title': "Biome Coloring Overlay",
